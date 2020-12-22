@@ -11,3 +11,8 @@ cited from hte course descritpion:
 ## Goals
 
 ## Dependencies
+
+- Python
+- Pandas
+- D3.js V6
+- Flask
