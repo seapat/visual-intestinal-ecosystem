@@ -16,6 +16,3 @@ cited from hte course descritpion:
 - Pandas
 - D3.js V6
 - Flask
-
-
-<iframe width="768" height="432" src="https://miro.com/app/live-embed/o9J_la_nkp0=/?moveToViewport=-1049,-625,2475,1288" frameBorder="0" scrolling="no" allowFullScreen></iframe>
