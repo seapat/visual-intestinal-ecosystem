@@ -1,4 +1,5 @@
-# visual-intestinal-ecosystem
+# Visualisation of Human intestinal Ecosystem data
+
 Group Project for "Visualisation of Biological Data" at Uni Tuebingen
 
 ## About the course
