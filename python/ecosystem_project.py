@@ -16,10 +16,10 @@ all_data.to_csv("All_Data.csv")
 
 # Creating a new column "bacterias" within the metadata dataframe
 # for each (i,bacterias) cell (i=0 -> len(metadata.SampleID)) insert the i-th row of bacteria
-metadata['bacterias'] = ""
-metadata['bacterias'] = metadata['bacterias'].astype(object)
+metadata['Bacteria'] = ""
+metadata['Bacteria'] = metadata['Bacteria'].astype(object)
 for index, row in metadata.iterrows():
-    metadata.at[index, 'bacterias'] = bacteria.iloc[[index]]
+    metadata.at[index, 'Bacteria'] = bacteria.iloc[[index]]
 
 metadata.to_csv("Complete_Data.csv")   # convert to csv
 metadata = metadata.to_json("Complete_Data.json", orient="records")  # convert to json format, this takes a while.
