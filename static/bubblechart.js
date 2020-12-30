@@ -5,8 +5,13 @@
 
 
 console.log(dataset);
-//console.log(Math.max.apply(Math, dataset.map(function(o) { return o.Age; })));
-//console.table(dataset); //This takes a bit to load
+
+// VARIABLES //
+
+//extract nationality column, used for x axis and scaling bubble size, rename empty cells to "Unkown"
+let nationalities = dataset.map(d => (d["Nationality"] == null) ? "Unknown" : d["Nationality"]);
+
+
 
 // DIMENSIONS //
 let margin = {top: 100, right: 150, bottom: 60, left: 50},
@@ -47,15 +52,14 @@ let svg = d3.select("#bubblechart")
 
 // X AXIS //
 
-    //extract nationality column (map), make values unique via new Set
-    let nationalities = new Set(dataset.map(d => d["Nationality"])) ;
-    nationalities.delete(null); //remove null in place
-    //console.log(nationalities);
+    //make values unique via new Set
+    let nationLabels = new Set(nationalities);
+    console.log(nationLabels)
 
 
     // x scale'
     let xScale = d3.scaleBand()
-        .domain(nationalities)
+        .domain(nationLabels) //TODO: sort occurence in some way (either by average age, bubble size or alphabet)
         .range([0, width]);
 
     // x ticks
@@ -72,3 +76,15 @@ let svg = d3.select("#bubblechart")
         .text("Nationality")
         //.style("font-size", 12);
 
+// DRAW BUBBLES //
+
+    // count occurences of nationalities https://stackoverflow.com/a/46090384/14276346
+    let nationCounts = nationalities.reduce((nationCounts, val) => nationCounts.set(val, 1 + (nationCounts.get(val) || 0)), new Map());
+    console.log(nationCounts)
+    console.log(Math.max(nationCounts.values())) //TODO: get max value across all cells
+    console.log(Math.max.apply(nationCounts))
+
+    // scale bubble size
+    let bubbleScale = d3.scaleSqrt()
+        .domain([1, 10])
+        .range([2 , 26]);
