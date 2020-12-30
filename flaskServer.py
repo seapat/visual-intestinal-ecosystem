@@ -6,6 +6,10 @@ import pandas as pd
 app = Flask(__name__)
 app.config['DEBUG'] = True
 
+##############
+# App routes #
+##############
+
 @app.route('/')
 def index():
     return redirect(url_for('base'))
@@ -18,9 +22,22 @@ def base():
 def home():
     return render_template('home.html')
 
+@app.route('/metadata' , methods=["POST", "GET"])
+def metadata():
+    return render_template('metadata.html')
+
+@app.route('/analysis' , methods=["POST", "GET"])
+def analysis():
+    return render_template('analysis.html')
+
 @app.route('/about' , methods=["POST", "GET"])
 def about():
     return render_template('about.html')
+
+##############
+# Functions  #
+##############
+
 
 
 if __name__ == '__main__':
