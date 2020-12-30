@@ -2,4 +2,18 @@
 
 {% extends "base.html" %}
 {% block content %}
+
+<!--div element that contains the tooltip-->
+<div id="graph">
+    <div id="tooltip"> </div>
+</div>
+
+<!--data from server-->
+<script type="text/javascript" >
+    dataset = {{ jsonTable | safe }};
+</script>
+
+<!-- load visualisation-->
+<script src="{{ url_for('static', filename='bubblechart.js') }}"></script>
+
 {% endblock %}
