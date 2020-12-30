@@ -20,7 +20,8 @@ def base():
 
 @app.route('/home' , methods=["POST", "GET"])
 def home():
-    return render_template('home.html')
+    data = combine_tsv()
+    return render_template('home.html', table = data)
 
 @app.route('/metadata' , methods=["POST", "GET"])
 def metadata():
@@ -38,7 +39,7 @@ def about():
 # Functions  #
 ##############
 
-def combine_tsv(data_meta = "ecosystem_Metadata.tsv", data_bacteria = "ecosystem_HITChip.tsv"):
+def combine_tsv(data_meta = "static/ecosystem_Metadata.tsv", data_bacteria = "static/ecosystem_HITChip.tsv"):
     # Additional Python Code to perform small computations
 
     # merge two tsv files into one json file
@@ -52,7 +53,7 @@ def combine_tsv(data_meta = "ecosystem_Metadata.tsv", data_bacteria = "ecosystem
 
     # dataframe including all columns of both files in one level
     all_data = pd.concat([metadata, bacteria], axis=1)
-    all_data.to_csv("All_Data.csv")
+    #all_data.to_csv("All_Data.csv")
     #print(all_data)
 
     # Creating a new column "bacterias" within the metadata dataframe
@@ -62,8 +63,8 @@ def combine_tsv(data_meta = "ecosystem_Metadata.tsv", data_bacteria = "ecosystem
     for index, row in metadata.iterrows():
         metadata.at[index, 'Bacteria'] = bacteria.iloc[[index]]
 
-    metadata.to_csv("Complete_Data.csv")   # convert to csv
-    metadata = metadata.to_json("Complete_Data.json", orient="records")  # convert to json format, this takes a while.
+    #metadata.to_csv("Complete_Data.csv")   # convert to csv
+    metadata = metadata.to_json(orient="records")  # convert to json format, this takes a while. # removed from to_json(): "Complete_Data.json",
 
     return metadata
 
