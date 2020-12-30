@@ -1,6 +1,7 @@
 //Sean Klein 5575709
 
 // gets the nested javascript object containing metadata and measurment data as an additional
+// all other operations (extract axis labels, count or summarize column values) are done in javascript
 
 
 console.log(dataset);
@@ -27,7 +28,7 @@ let svg = d3.select("#bubblechart")
     // y scale
     let yScale = d3.scaleLinear()
         //return max value from col "Age" https://stackoverflow.com/a/4020842/14276346
-        .domain([0, Math.max.apply(Math, dataset.map(function(o) { return o.Age; }))])
+        .domain([0, Math.max.apply(Math, dataset.map(d => d.Age))])
         .range([ height, 0]);
 
     // y ticks
@@ -48,8 +49,8 @@ let svg = d3.select("#bubblechart")
 
     //extract nationality column (map), make values unique via new Set
     let nationalities = new Set(dataset.map(d => d["Nationality"])) ;
-    nationalities.delete(null) //remove null in place
-    console.log(nationalities);
+    nationalities.delete(null); //remove null in place
+    //console.log(nationalities);
 
 
     // x scale'
@@ -70,3 +71,4 @@ let svg = d3.select("#bubblechart")
         .attr("y", height + 50 )
         .text("Nationality")
         //.style("font-size", 12);
+
