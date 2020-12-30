@@ -21,7 +21,7 @@ def base():
 @app.route('/home' , methods=["POST", "GET"])
 def home():
     data = combine_tsv()
-    return render_template('home.html', table = data)
+    return render_template('home.html', jsonTable = data)
 
 @app.route('/metadata' , methods=["POST", "GET"])
 def metadata():
