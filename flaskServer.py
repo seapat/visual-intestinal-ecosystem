@@ -35,6 +35,12 @@ def analysis():
 def about():
     return render_template('about.html')
 
+#favicon support for old browsers according to https://flask.palletsprojects.com/en/1.1.x/patterns/favicon/
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
 ##############
 # Functions  #
 ##############
