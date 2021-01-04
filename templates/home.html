@@ -1,5 +1,11 @@
-<!--Sean Klein 5575709-->
+<!--Sean Klein 5575709, Florian Kellner 4090126-->
 
 {% extends "base.html" %}
 {% block content %}
+<script type="text/javascript">
+  const data = {{ jsonTable | safe }};
+  const species = {{ species | safe }};
+  console.log(data);
+  console.log(species);
+</script>
 {% endblock %}

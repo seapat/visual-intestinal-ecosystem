@@ -21,8 +21,8 @@ def base():
 
 @app.route('/home' , methods=["POST", "GET"])
 def home():
-    data = combine_tsv()
-    return render_template('home.html', jsonTable = data)
+    (data, species_list) = combine_tsv()
+    return render_template('home.html', jsonTable = data, species = species_list)
 
 @app.route('/metadata' , methods=["POST", "GET"])
 def metadata():
@@ -86,8 +86,9 @@ def combine_tsv(data_meta = "static/ecosystem_Metadata.tsv", data_bacteria = "st
 
     #metadata.to_csv("Complete_Data.csv")   # convert to csv
     metadata = metadata.to_json(orient="records")  # convert to json format, this takes a while. # removed from to_json(): "Complete_Data.json",
+    species_list = [b for b in bacteria.columns]
 
-    return metadata
+    return (metadata, species_list)
 
 if __name__ == '__main__':
     app.run(debug=True, port=6001)
