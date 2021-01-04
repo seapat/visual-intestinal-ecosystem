@@ -2,10 +2,14 @@
 
 {% extends "base.html" %}
 {% block content %}
+<div id="content">
+  <svg id="heat_wheel"></svg>
+</div>
 <script type="text/javascript">
   const data = {{ jsonTable | safe }};
   const species = {{ species | safe }};
-  console.log(data);
-  console.log(species);
+  // console.log(data);
+  // console.log(species);
 </script>
+<script src="{{ url_for('static', filename='heat_wheel.js') }}"></script>
 {% endblock %}
