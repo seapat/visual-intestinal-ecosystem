@@ -13,6 +13,19 @@ all_data = pd.concat([metadata, bacteria], axis=1)
 all_data.to_csv("All_Data.csv")
 #print(all_data)
 
+# find out if we have more than one data point per subject (we do):
+# all_data.groupby("SubjectID").size().to_frame().groupby(by=0).size()
+# the paper says they took the first sample if several were available
+# (see Methods -> Sample collection),
+# so we should probably do the same:
+subject_times = metadata[["SubjectID", "Time"]].groupby("SubjectID").min()
+metadata = pd.merge(
+    left  = subject_times,
+    right = metadata,
+    how   ='inner',
+    on    = ["SubjectID", "Time"]
+)
+
 # Creating a new column "bacterias" within the metadata dataframe
 # for each (i,bacterias) cell (i=0 -> len(metadata.SampleID)) insert the i-th row of bacteria
 metadata['Bacteria'] = ""
