@@ -57,6 +57,9 @@ def combine_tsv(data_meta = "static/ecosystem_Metadata.tsv", data_bacteria = "st
     metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
     bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
 
+    # normalize bacteria dataframe
+    bacteria = (bacteria - bacteria.min())/(bacteria.max() - bacteria.min())
+
     # dataframe including all columns of both files in one level
     all_data = pd.concat([metadata, bacteria], axis=1)
     #all_data.to_csv("All_Data.csv")
