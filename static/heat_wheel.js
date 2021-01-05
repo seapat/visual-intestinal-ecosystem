@@ -1,5 +1,5 @@
-// const data = {{ jsonTable | safe }};
-// const species = {{ species | safe }};
+// const DATA = {{ jsonTable | safe }};
+// const SPECIES = {{ species | safe }};
 
 // drawing constants
 const INNER_RADIUS = 350;
@@ -8,6 +8,7 @@ const RING_PADDING = 1;
 const PAD_ANGLE = 0.005;
 const SVG_X = (INNER_RADIUS + RING_RADIUS) * 2;
 const SVG_Y = (INNER_RADIUS + RING_RADIUS) * 2;
+const SPECIES_FONT_SIZE = 10;
 
 const GROUPS = preprocess_groups(
   ['BMI_group', 'Sex', 'Nationality', 'DNA_extraction_method']
@@ -39,7 +40,7 @@ function distinct(data, accessor) {
 function make_group(by) {
   return {
     name: by,
-    categories: distinct(data, d => d[by])
+    categories: distinct(DATA, d => d[by])
   };
 }
 // heatmap tiles
@@ -62,11 +63,11 @@ function preprocess_groups(group_names) {
 
     // calculate normalized heatmap values
     const means = [];
-    species.map(s => {
-      const species_mean = d3.mean(data, d => d.Bacteria[0][s]);
+    SPECIES.map(s => {
+      const species_mean = d3.mean(DATA, d => d.Bacteria[0][s]);
       group.categories.map(c => {
         c[s] = d3.mean(
-          data.filter(r => r[group.name] == c.name),
+          DATA.filter(r => r[group.name] == c.name),
           r => r.Bacteria[0][s]
         ) - species_mean;
         means.push(c[s]);
@@ -74,7 +75,7 @@ function preprocess_groups(group_names) {
     });
     const min_mean = d3.min(means);
     const mean_range = d3.max(means) - min_mean;
-    species.map(s => {
+    SPECIES.map(s => {
       group.categories.map(c => {
         c[s] = (c[s] - min_mean)/mean_range;
       })
@@ -95,7 +96,7 @@ const svg = d3.select('#heat_wheel')
 // pie chart needed for calculating angles
 const bacteria_angles = d3.pie()
   .padAngle(PAD_ANGLE)
-  .value(d => 1)(species);
+  .value(d => 1)(SPECIES);
 
 // arc needed to compute positions for the legend
 const outer_circle = d3.arc()
@@ -112,7 +113,7 @@ function paint_group(group) {
     svg.append('text')
        .attr('fill', 'black')
        .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d.startAngle) - 90})`)
-       .attr('font-size', 10)
+       .attr('font-size', SPECIES_FONT_SIZE)
        .text(d.data);
 
     group.categories.map(cat => {
