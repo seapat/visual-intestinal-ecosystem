@@ -3,7 +3,14 @@
 {% extends "base.html" %}
 {% block content %}
 <div id="content">
+  <h2>Bacteria abundance by species and
+    <select name="grouping" id="select_grouping">
+    </select>
+  </h2>
   <svg id="heat_wheel"></svg>
+  <p>
+    Mean differences from species mean, normalized across species.
+  </p>
 </div>
 <script type="text/javascript">
   const data = {{ jsonTable | safe }};

@@ -9,7 +9,20 @@ const PAD_ANGLE = 0.005;
 const SVG_X = (INNER_RADIUS + RING_RADIUS) * 2;
 const SVG_Y = (INNER_RADIUS + RING_RADIUS) * 2;
 
-const GROUPS = ['Sex', 'BMI_group', 'Nationality', 'DNA_extraction_method'].map(by => make_group(by));
+const GROUPS = preprocess_groups(
+  ['BMI_group', 'Sex', 'Nationality', 'DNA_extraction_method']
+);
+
+const grouping_choice = d3.select('#select_grouping');
+
+GROUPS.map(g =>
+  grouping_choice.append('option')
+    .attr('value', g.name)
+    .html(g.name)
+);
+
+grouping_choice.on('change', event => paint_group(GROUPS.filter(g => g.name == event.target.value)[0]));
+
 
 // helper function for rotating text
 function rad2dgr(radians) {
@@ -21,11 +34,53 @@ function distinct(data, accessor) {
   return Array.from(d3.union(data.map(accessor))).filter(d => d);
 }
 
+// #### preprocessing ####
+// helper function for group preprocessing
 function make_group(by) {
   return {
     name: by,
     categories: distinct(data, d => d[by])
   };
+}
+// heatmap tiles
+function generate_tile_rings(categories) {
+  for(let i = 0; i < categories.length; i++) {
+    categories[i] = {
+      name: categories[i],
+      ring: d3.arc()
+      .innerRadius(INNER_RADIUS + (i / categories.length) * RING_RADIUS + RING_PADDING)
+      .outerRadius(INNER_RADIUS + ((i + 1) / categories.length) * RING_RADIUS)
+    };
+  }
+}
+
+// unified preprocessing
+function preprocess_groups(group_names) {
+  const groups = group_names.map(by => make_group(by));
+  groups.map(group => {
+    generate_tile_rings(group.categories);
+
+    // calculate normalized heatmap values
+    const means = [];
+    species.map(s => {
+      const species_mean = d3.mean(data, d => d.Bacteria[0][s]);
+      group.categories.map(c => {
+        c[s] = d3.mean(
+          data.filter(r => r[group.name] == c.name),
+          r => r.Bacteria[0][s]
+        ) - species_mean;
+        means.push(c[s]);
+      });
+    });
+    const min_mean = d3.min(means);
+    const mean_range = d3.max(means) - min_mean;
+    species.map(s => {
+      group.categories.map(c => {
+        c[s] = (c[s] - min_mean)/mean_range;
+      })
+    });
+  });
+  return groups;
 }
 
 // prepare canvas
@@ -47,41 +102,10 @@ const outer_circle = d3.arc()
   .innerRadius(0)
   .outerRadius(INNER_RADIUS * 2);
 
-// heatmap tiles
-function generate_tile_rings(categories) {
-  for(let i = 0; i < categories.length; i++) {
-    categories[i] = {
-      name: categories[i],
-      ring: d3.arc()
-      .innerRadius(INNER_RADIUS + (i / categories.length) * RING_RADIUS + RING_PADDING)
-      .outerRadius(INNER_RADIUS + ((i + 1) / categories.length) * RING_RADIUS)
-    };
-  }
-}
-
 // ##### graph creator ####
 function paint_group(group) {
   // clear graph
   svg.html('');
-
-  // generate rings and initiate categories as objects instead of strings
-  generate_tile_rings(group.categories);
-
-  // calculate normalized heatmap values
-  const means = [];
-  bacteria_angles.map(d => {
-    group.categories.map(c => {
-      c[d.data] = d3.mean(data.filter(r => r[group.name] == c.name), r => r.Bacteria[0][d.data]);
-      means.push(c[d.data]);
-    });
-  });
-  const min_mean = d3.min(means);
-  const mean_range = d3.max(means) - min_mean;
-  bacteria_angles.map(d => {
-    group.categories.map(c => {
-      c[d.data] = (c[d.data] - min_mean)/mean_range;
-    })
-  });
 
   // paint graph
   bacteria_angles.map(d => {
@@ -103,4 +127,4 @@ function paint_group(group) {
 }
 
 // ##### create initial graph ####
-paint_group(GROUPS[1]); // starting with Sex is probably a bit lame
+paint_group(GROUPS[0]);
