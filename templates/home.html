@@ -1,6 +1,11 @@
 <!--Sean Klein 5575709, Florian Kellner 4090126-->
 
 {% extends "base.html" %}
+
+{% block extrastyles %}
+<link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='heat_wheel.css') }}" >
+{% endblock %}
+
 {% block content %}
 <div id="content">
   <h2>Bacteria abundance by species and

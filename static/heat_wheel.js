@@ -8,7 +8,6 @@ const RING_PADDING = 1;
 const PAD_ANGLE = 0.005;
 const SVG_X = (INNER_RADIUS + RING_RADIUS) * 2;
 const SVG_Y = (INNER_RADIUS + RING_RADIUS) * 2;
-const SPECIES_FONT_SIZE = 10;
 
 const GROUPS = preprocess_groups(
   ['BMI_group', 'Sex', 'Nationality', 'DNA_extraction_method']
@@ -110,19 +109,19 @@ function paint_group(group) {
 
   // paint graph
   bacteria_angles.map(d => {
-    svg.append('text')
-       .attr('fill', 'black')
-       .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d.startAngle) - 90})`)
-       .attr('font-size', SPECIES_FONT_SIZE)
-       .text(d.data);
-
+    // paths come first: important for css styling
+    const piece = svg.append('g');
     group.categories.map(cat => {
-      svg.append('path')
+      piece.append('path')
          .attr('fill', d3.interpolateViridis(cat[d.data]))
          .attr('d', cat.ring(d))
-         .attr('stroke', 'white')
-         .attr('stroke-width', '2px');
+         .attr('class', 'heatmap_tile');
     });
+
+    piece.append('text')
+       .attr('class', 'species_label')
+       .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d.startAngle) - 90})`)
+       .text(d.data);
   });
 
 }
