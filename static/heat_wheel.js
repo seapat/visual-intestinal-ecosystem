@@ -115,7 +115,9 @@ function paint_group(group) {
       piece.append('path')
          .attr('fill', d3.interpolateViridis(cat[d.data]))
          .attr('d', cat.ring(d))
-         .attr('class', 'heatmap_tile');
+         .attr('class', 'heatmap_tile')
+         .append('title')
+         .text(cat.name);
     });
 
     piece.append('text')
