@@ -1,7 +1,7 @@
 // const DATA = {{ jsonTable | safe }};
 // const SPECIES = {{ species | safe }};
 
-// drawing constants
+// #### drawing constants ####
 const INNER_RADIUS = 350;
 const RING_RADIUS = 50;
 const RING_PADDING = 1;
@@ -13,28 +13,22 @@ const GROUPS = preprocess_groups(
   ['BMI_group', 'Sex', 'Nationality', 'DNA_extraction_method']
 );
 
+// #### dropdown for choosing grouping ####
 const grouping_choice = d3.select('#select_grouping');
-
 GROUPS.map(g =>
   grouping_choice.append('option')
     .attr('value', g.name)
     .html(g.name)
 );
-
 grouping_choice.on('change', event => paint_group(GROUPS.filter(g => g.name == event.target.value)[0]));
 
+// #### preprocessing (groupings) ####
 
-// helper function for rotating text
-function rad2dgr(radians) {
-  return radians * (180 / Math.PI);
-}
-
-// helper function for getting distinct groups
+// getting distinct groups
 function distinct(data, accessor) {
   return Array.from(d3.union(data.map(accessor))).filter(d => d);
 }
 
-// #### preprocessing ####
 // helper function for group preprocessing
 function make_group(by) {
   return {
@@ -42,6 +36,7 @@ function make_group(by) {
     categories: distinct(DATA, d => d[by])
   };
 }
+
 // heatmap tiles
 function generate_tile_rings(categories) {
   for(let i = 0; i < categories.length; i++) {
@@ -54,7 +49,7 @@ function generate_tile_rings(categories) {
   }
 }
 
-// unified preprocessing
+// unified group preprocessing
 function preprocess_groups(group_names) {
   const groups = group_names.map(by => make_group(by));
   groups.map(group => {
@@ -83,6 +78,7 @@ function preprocess_groups(group_names) {
   return groups;
 }
 
+// #### graph prerequisites ####
 // prepare canvas
 const svg = d3.select('#heat_wheel')
   .attr('width', SVG_Y)
@@ -91,6 +87,11 @@ const svg = d3.select('#heat_wheel')
   .attr('font-family', 'sans-serif')
   .append('g')
   .attr('transform', `translate(${SVG_Y / 2},${SVG_X / 2})`); // start drawing from the middle
+
+// helper function for rotating text
+function rad2dgr(radians) {
+  return radians * (180 / Math.PI);
+}
 
 // pie chart needed for calculating angles
 const bacteria_angles = d3.pie()
