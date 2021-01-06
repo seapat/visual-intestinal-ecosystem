@@ -33,7 +33,7 @@ function distinct(data, accessor) {
 function make_group(by) {
   return {
     name: by,
-    categories: distinct(DATA, d => d[by])
+    categories: distinct(DATA, d => d[by]).sort()
   };
 }
 
@@ -52,9 +52,16 @@ function generate_tile_rings(categories) {
 // unified group preprocessing
 function preprocess_groups(group_names) {
   const groups = group_names.map(by => make_group(by));
+
+  // manually order some categories - HACKY!
+  if (group_names.includes('BMI_group')) {
+    groups.filter(g => g.name == 'BMI_group')[0].categories = [
+      'underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese'
+    ];
+  }
+
   groups.map(group => {
     generate_tile_rings(group.categories);
-
     // calculate normalized heatmap values
     const means = [];
     SPECIES.map(s => {
