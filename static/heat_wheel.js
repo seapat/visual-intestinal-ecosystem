@@ -9,8 +9,9 @@ const PAD_ANGLE = 0.005;
 const SVG_X = (INNER_RADIUS + RING_RADIUS) * 2;
 const SVG_Y = (INNER_RADIUS + RING_RADIUS) * 2;
 
+add_age_groups(DATA);
 const GROUPS = preprocess_groups(
-  ['BMI_group', 'Sex', 'Nationality', 'DNA_extraction_method']
+  ['BMI_group', 'Age_group', 'Sex', 'Nationality', 'DNA_extraction_method']
 );
 
 // #### dropdown for choosing grouping ####
@@ -23,6 +24,32 @@ GROUPS.map(g =>
 grouping_choice.on('change', event => paint_group(GROUPS.filter(g => g.name == event.target.value)[0]));
 
 // #### preprocessing (groupings) ####
+
+// adding age group fields to data
+function group_age(a) {
+  if (a < 18) {
+    return '0-17';
+  } else if (a < 28) {
+    return '18-27';
+  // } else if (a < 38) {
+  //   return '28-37';
+  } else if (a < 48) {
+    return '28-47';
+  // } else if (a < 58) {
+  //   return '48-57';
+  } else if (a < 68) {
+    return '48-67';
+  // } else if (a < 78) {
+  //   return '68-77';
+  } else if (a < 88) {
+    return '68-87';
+  } else {
+    return '>=88';
+  }
+}
+function add_age_groups(data) {
+  data.map(d => d.Age_group = group_age(d.Age));
+}
 
 // getting distinct groups
 function distinct(data, accessor) {
