@@ -11,6 +11,12 @@ const X_PADDING = 10;
 const SVG_X = (INNER_RADIUS + RING_RADIUS + X_PADDING) * 2;
 const SVG_Y = (INNER_RADIUS + RING_RADIUS + Y_PADDING) * 2;
 
+// color legend
+const LEGEND_TILE_WIDTH = 20;
+const LEGEND_TILE_HEIGHT = 10;
+const LEGEND_TILE_PADDING = 5;
+
+// data
 generate_groups(DATA, 'Age', 4);
 generate_groups(DATA, 'Diversity', 4);
 const GROUPS = preprocess_groups(
@@ -103,6 +109,7 @@ function preprocess_groups(group_names) {
         c[s] = (c[s] - min_mean)/mean_range;
       })
     });
+    group.scaled_zero = (0 - min_mean)/mean_range;
   });
   return groups;
 }
@@ -153,6 +160,32 @@ function paint_group(group) {
       .attr('class', 'group_label')
       .text(c.name);
   });
+
+  // paint color legend
+  const color_legend = svg.append('g')
+    .attr('transform', `translate(${INNER_RADIUS + RING_RADIUS - LEGEND_TILE_WIDTH}, ${- INNER_RADIUS - RING_RADIUS})`);
+  const steps = [
+    {value: 0, name: 'lowest'},
+    {value: group.scaled_zero / 2, name: ''},
+    {value: group.scaled_zero, name: 'average'},
+    {value: group.scaled_zero + ((1 - group.scaled_zero) / 2), name: ''},
+    {value: 1, name: 'highest'}
+  ];
+  for (let i = 0; i < steps.length; i++) {
+    const y_pos = (LEGEND_TILE_HEIGHT + LEGEND_TILE_PADDING) * i;
+    color_legend.append('rect')
+      .attr('y', y_pos)
+      .attr('width', LEGEND_TILE_WIDTH)
+      .attr('height', LEGEND_TILE_HEIGHT)
+      .attr('fill', d3.interpolateViridis(steps[i].value))
+      .append('title')
+      .text(steps[i].name);
+    color_legend.append('text')
+      .attr('y', y_pos + LEGEND_TILE_HEIGHT)
+      .attr('x', - LEGEND_TILE_PADDING)
+      .text(steps[i].name)
+      .attr('class', 'group_label');
+  }
 
   // paint graph
   bacteria_angles.map(d => {
