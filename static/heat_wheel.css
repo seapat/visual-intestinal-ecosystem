@@ -1,9 +1,9 @@
-.species_label {
+.species_label, .group_label {
   font-size: 10;
   color: black;
 }
 
-.species_label:hover {
+.species_label:hover, .group_label:hover {
   font-weight: bold;
 }
 

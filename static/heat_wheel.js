@@ -3,11 +3,13 @@
 
 // #### drawing constants ####
 const INNER_RADIUS = 350;
-const RING_RADIUS = 50;
+const RING_RADIUS = 70;
 const RING_PADDING = 1;
 const PAD_ANGLE = 0.005;
-const SVG_X = (INNER_RADIUS + RING_RADIUS) * 2;
-const SVG_Y = (INNER_RADIUS + RING_RADIUS) * 2;
+const Y_PADDING = 50;
+const X_PADDING = 10;
+const SVG_X = (INNER_RADIUS + RING_RADIUS + X_PADDING) * 2;
+const SVG_Y = (INNER_RADIUS + RING_RADIUS + Y_PADDING) * 2;
 
 generate_groups(DATA, 'Age', 4);
 generate_groups(DATA, 'Diversity', 4);
@@ -57,11 +59,13 @@ function make_group(by) {
 // heatmap tiles
 function generate_tile_rings(categories) {
   for(let i = 0; i < categories.length; i++) {
+    const startRadius = INNER_RADIUS + (i / categories.length) * RING_RADIUS + RING_PADDING;
+    const endRadius = INNER_RADIUS + ((i + 1) / categories.length) * RING_RADIUS;
     categories[i] = {
       name: categories[i],
-      ring: d3.arc()
-      .innerRadius(INNER_RADIUS + (i / categories.length) * RING_RADIUS + RING_PADDING)
-      .outerRadius(INNER_RADIUS + ((i + 1) / categories.length) * RING_RADIUS)
+      ring: d3.arc().innerRadius(startRadius).outerRadius(endRadius),
+      startRadius: startRadius,
+      endRadius: endRadius
     };
   }
 }
@@ -132,6 +136,23 @@ const outer_circle = d3.arc()
 function paint_group(group) {
   // clear graph
   svg.html('');
+
+  // paint ring legend
+  group.categories.map(c => {
+    svg.append('line')
+      .attr('y1', - c.startRadius)
+      .attr('y2', - c.startRadius)
+      .attr('x1', 0)
+      .attr('x2', - INNER_RADIUS)
+      .attr('stroke', 'black')
+      .attr('stroke-dasharray', ('2,2'));
+
+    svg.append('text')
+      .attr('y', - c.startRadius)
+      .attr('x', - INNER_RADIUS)
+      .attr('class', 'group_label')
+      .text(c.name);
+  });
 
   // paint graph
   bacteria_angles.map(d => {
