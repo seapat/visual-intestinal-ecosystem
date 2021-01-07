@@ -91,11 +91,12 @@ function preprocess_groups(group_names) {
     generate_tile_rings(group.categories);
     // calculate normalized heatmap values
     const means = [];
+    const grouped_data = d3.group(DATA, d => d[group.name]);
     SPECIES.map(s => {
       const species_mean = d3.mean(DATA, d => d.Bacteria[0][s]);
       group.categories.map(c => {
         c[s] = d3.mean(
-          DATA.filter(r => r[group.name] == c.name),
+          grouped_data.get(c.name),
           r => r.Bacteria[0][s]
         ) - species_mean;
         means.push(c[s]);
