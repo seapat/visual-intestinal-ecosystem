@@ -9,9 +9,10 @@ const PAD_ANGLE = 0.005;
 const SVG_X = (INNER_RADIUS + RING_RADIUS) * 2;
 const SVG_Y = (INNER_RADIUS + RING_RADIUS) * 2;
 
-add_age_groups(DATA);
+generate_groups(DATA, 'Age', 4);
+generate_groups(DATA, 'Diversity', 4);
 const GROUPS = preprocess_groups(
-  ['BMI_group', 'Age_group', 'Sex', 'Nationality', 'DNA_extraction_method']
+  ['BMI_group', 'Age_group', 'Diversity_group', 'Sex', 'Nationality', 'DNA_extraction_method']
 );
 
 // #### dropdown for choosing grouping ####
@@ -25,30 +26,19 @@ grouping_choice.on('change', event => paint_group(GROUPS.filter(g => g.name == e
 
 // #### preprocessing (groupings) ####
 
-// adding age group fields to data
-function group_age(a) {
-  if (a < 18) {
-    return '0-17';
-  } else if (a < 28) {
-    return '18-27';
-  // } else if (a < 38) {
-  //   return '28-37';
-  } else if (a < 48) {
-    return '28-47';
-  // } else if (a < 58) {
-  //   return '48-57';
-  } else if (a < 68) {
-    return '48-67';
-  // } else if (a < 78) {
-  //   return '68-77';
-  } else if (a < 88) {
-    return '68-87';
-  } else {
-    return '>=88';
+// create distinct groups from continuous data
+function generate_groups(data, field, amount) {
+  const min = d3.min(data, d => d[field]);
+  const max = d3.max(data, d => d[field]);
+  const ticks = d3.ticks(min, max, amount);
+  function get_group(f) {
+    if (f < ticks[0]) return `${min}-${ticks[0]}`;
+    for(let i = 1; i < ticks.length; i++) {
+      if (f < ticks[i]) return `${ticks[i-1]}-${ticks[i]}`;
+    }
+    return `${ticks[ticks.length - 1]}-${max}`;
   }
-}
-function add_age_groups(data) {
-  data.map(d => d.Age_group = group_age(d.Age));
+  data.map(d => d[`${field}_group`] = get_group(d[field]));
 }
 
 // getting distinct groups
