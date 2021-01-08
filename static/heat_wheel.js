@@ -100,6 +100,7 @@ function preprocess_groups(group_names) {
           r => r[s]
         ) - species_mean;
         means.push(c[s]);
+        c[`${s}_sample_size`] = grouped_data.get(c.name).length;
       });
     });
     const min_mean = d3.min(means);
@@ -192,12 +193,13 @@ function paint_group(group) {
     // paths come first: important for css styling
     const piece = svg.append('g');
     group.categories.map(cat => {
+      const sample_size = cat[`${d.data}_sample_size`];
       piece.append('path')
          .attr('fill', d3.interpolateViridis(cat[d.data]))
          .attr('d', cat.ring(d))
          .attr('class', 'heatmap_tile')
          .append('title')
-         .text(cat.name);
+         .text(`${cat.name} (${sample_size} Samples)`);
     });
 
     piece.append('text')
