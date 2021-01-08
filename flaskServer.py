@@ -30,7 +30,8 @@ def metadata():
 
 @app.route('/analysis' , methods=["POST", "GET"])
 def analysis():
-    return render_template('analysis.html')
+    (data, species_list) = combine_tsv()
+    return render_template('analysis.html', jsonTable = data, species = species_list)
 
 @app.route('/about' , methods=["POST", "GET"])
 def about():

@@ -1,5 +1,27 @@
-<!--Sean Klein 5575709-->
+<!--Florian Kellner 4090126 -->
 
 {% extends "base.html" %}
+
+{% block extrastyles %}
+<link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='heat_wheel.css') }}" >
+{% endblock %}
+
 {% block content %}
+<div id="content">
+  <h2>Bacteria abundance by species and
+    <select name="grouping" id="select_grouping">
+    </select>
+  </h2>
+  <svg id="heat_wheel"></svg>
+  <p>
+    Mean differences from species mean, normalized across species.
+  </p>
+</div>
+<script type="text/javascript">
+  const DATA = {{ jsonTable | safe }};
+  const SPECIES = {{ species | safe }};
+  // console.log(data);
+  // console.log(species);
+</script>
+<script src="{{ url_for('static', filename='heat_wheel.js') }}"></script>
 {% endblock %}
