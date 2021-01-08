@@ -1,0 +1,21 @@
+.species_label, .group_label {
+  font-size: 10;
+  color: black;
+}
+
+.species_label:hover, .group_label:hover {
+  font-weight: bold;
+}
+
+.heatmap_tile {
+  stroke: white;
+  stroke-width: 2px;
+}
+
+.heatmap_tile:hover {
+  stroke: black;
+}
+
+.heatmap_tile:hover ~ .species_label {
+  font-weight: bold;
+}

@@ -7,6 +7,10 @@
     <link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='base.css') }}" >
     <script src="https://d3js.org/d3.v6.min.js" charset="utf-8"></script>
     <title>Human intestinal Ecosystem</title>
+
+    <!-- insert more css from other files if necessary -->
+    {% block extrastyles %}
+    {% endblock %}
 </head>
 <body>
     <ul>
