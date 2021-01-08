@@ -146,6 +146,7 @@ function paint_group(group) {
   svg.html('');
 
   // paint ring legend
+  const grouped_data = d3.group(DATA, d => d[group.name]);
   group.categories.map(c => {
     svg.append('line')
       .attr('y1', - c.startRadius)
@@ -159,7 +160,7 @@ function paint_group(group) {
       .attr('y', - c.startRadius)
       .attr('x', - INNER_RADIUS)
       .attr('class', 'group_label')
-      .text(c.name);
+      .text(`${c.name} (${grouped_data.get(c.name).length})`);
   });
 
   // paint color legend
