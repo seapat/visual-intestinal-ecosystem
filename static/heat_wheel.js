@@ -93,11 +93,11 @@ function preprocess_groups(group_names) {
     const means = [];
     const grouped_data = d3.group(DATA, d => d[group.name]);
     SPECIES.map(s => {
-      const species_mean = d3.mean(DATA, d => d.Bacteria[0][s]);
+      const species_mean = d3.mean(DATA, d => d[s]);
       group.categories.map(c => {
         c[s] = d3.mean(
           grouped_data.get(c.name),
-          r => r.Bacteria[0][s]
+          r => r[s]
         ) - species_mean;
         means.push(c[s]);
       });
