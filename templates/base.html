@@ -14,10 +14,10 @@
 </head>
 <body>
     <ul>
-        <li><a href="{{ url_for('home') }}">Home</a></li>
-        <li><a href="{{ url_for('metadata') }}">Metadata</a></li>
-        <li><a href="{{ url_for('analysis') }}">Ecosystem Data</a></li>
-        <li style="float:right"><a href="{{ url_for('about') }}">About</a></li>
+        <li class="home"><a href="{{ url_for('home') }}">Home</a></li>
+        <li class="metadata"><a href="{{ url_for('metadata') }}">Metadata</a></li>
+        <li class="analysis"><a href="{{ url_for('analysis') }}">Ecosystem Data</a></li>
+        <li class="about" style="float:right"><a href="{{ url_for('about') }}">About</a></li>
     </ul>
 
     <!-- between block and endblock we will insert more html, js from other files -->
