@@ -11,7 +11,6 @@ allowed_extensions = {'txt', 'csv', 'tsv'}
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 ##############
 # App routes #
@@ -27,7 +26,7 @@ def base():
 
 @app.route('/home' , methods=["POST", "GET"])
 def home():
-    (data, species_list) = combine_tsv()
+    (data, species_list) = visualizeData()
     return render_template('home.html', jsonTable = data, species = species_list)
 
 @app.route('/metadata' , methods=["POST", "GET"])
@@ -36,7 +35,7 @@ def metadata():
 
 @app.route('/analysis' , methods=["POST", "GET"])
 def analysis():
-    (data, species_list) = combine_tsv()
+    (data, species_list) = visualizeData()
     return render_template('analysis.html', jsonTable = data, species = species_list)
 
 @app.route('/about' , methods=["POST", "GET"])
@@ -58,20 +57,10 @@ def upload_files():
         filename_meta = secure_filename(metafile.filename)
         filename_bacteria = secure_filename(bacteriafile.filename)
 
-        metafile.save(os.path.join("UploadFiles", filename_meta))
-        bacteriafile.save(os.path.join("UploadFiles", filename_bacteria))
-
-        with open("UploadFiles/" + filename_meta) as m:
-            with open("UploadFiles/" + filename_bacteria) as b:
-                meta = m.read()
-                bact = b.read()
-        
-        
-                print(meta)       
-
-        return base()
-
-        
+        metafile.save(os.path.join("UploadFiles", "meta.csv"))
+        bacteriafile.save(os.path.join("UploadFiles", "bact.csv"))
+                      
+        return home()       
 
     else:
         result = request.args.get['meta']
@@ -87,16 +76,18 @@ def upload_files():
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
-def combine_tsv(data_meta = "static/ecosystem_Metadata.tsv", data_bacteria = "static/ecosystem_HITChip.tsv"):
+def combine_tsv(metadata, bacteria):
     # Additional Python Code to perform small computations
 
     # merge two tsv files into one json file
     # Input: 2 tsv files (1 metadata, 1 bacteria)
     # output: 1 json file
-
+    '''
     import pandas as pd
     metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
     bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
+'''
+
     species_list = [b for b in bacteria.columns]
 
     # normalize bacteria dataframe
@@ -123,6 +114,37 @@ def combine_tsv(data_meta = "static/ecosystem_Metadata.tsv", data_bacteria = "st
     all_data = all_data.to_json(orient="records")  # convert to json format
 
     return (all_data, species_list)
+
+def visualizeData():
+    '''
+    data_meta = "static/ecosystem_Metadata.tsv"
+    data_bacteria = "static/ecosystem_HITChip.tsv"
+
+    import pandas as pd
+    metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
+    bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
+   
+    return combine_tsv(metadata, bacteria)
+    '''
+    if os.path.isfile("UploadFiles/meta.csv") and os.path.isfile("UploadFiles/bact.csv"):
+
+        data_meta = "UploadFiles/meta.csv"
+        data_bacteria = "UploadFiles/bact.csv"
+
+        metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
+        bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
+
+        return combine_tsv(metadata, bacteria)
+
+    else:
+        
+        data_meta = "static/ecosystem_Metadata.tsv"
+        data_bacteria = "static/ecosystem_HITChip.tsv"
+
+        metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
+        bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
+
+        return combine_tsv(metadata, bacteria)
 
 if __name__ == '__main__':
     app.run(debug=True, port=6001)
