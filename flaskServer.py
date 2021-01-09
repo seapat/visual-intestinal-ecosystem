@@ -1,11 +1,17 @@
+# Mario Rauh 3916968
 # Sean Klein 5575709
 
 from flask import Flask, render_template, redirect, url_for, request, send_from_directory
 import os
 import pandas as pd
+from werkzeug.utils import secure_filename
+
+UPLOAD_FOLDER = '/UploadFiles'   # path to directory in which uploaded files will be saved 
+allowed_extensions = {'txt', 'csv', 'tsv'}
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 ##############
 # App routes #
@@ -43,9 +49,43 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
+@app.route('/getfile', methods=['POST'])
+def upload_files():
+    if request.method == 'POST':
+        metafile = request.files['meta']
+        bacteriafile = request.files['bacteria']
+
+        filename_meta = secure_filename(metafile.filename)
+        filename_bacteria = secure_filename(bacteriafile.filename)
+
+        metafile.save(os.path.join("UploadFiles", filename_meta))
+        bacteriafile.save(os.path.join("UploadFiles", filename_bacteria))
+
+        with open("UploadFiles/" + filename_meta) as m:
+            with open("UploadFiles/" + filename_bacteria) as b:
+                meta = m.read()
+                bact = b.read()
+        
+        
+                print(meta)       
+
+        return base()
+
+        
+
+    else:
+        result = request.args.get['meta']
+
+    return result
+
+
+
 ##############
 # Functions  #
 ##############
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 def combine_tsv(data_meta = "static/ecosystem_Metadata.tsv", data_bacteria = "static/ecosystem_HITChip.tsv"):
     # Additional Python Code to perform small computations
