@@ -138,9 +138,9 @@ let svg = d3.select("#home_chart")
     
     // x scale
     let xScale = d3.scalePoint()
-        .domain(Array.from( //create Array of Names
-                groupXSortY, //group by nation, sort nations by average age
-                obj => obj[0])) //extract nation name
+        .domain(Array.from(     //create Array of Names
+                groupXSortY,    //group by x attribute, sorted by y attr
+                obj => obj[0])) //extract name
         .range([0, width])
         .padding([0.5]);
 
@@ -163,21 +163,25 @@ let svg = d3.select("#home_chart")
     // scale bubble size
     let bubbleScale = d3.scaleSqrt()
         .domain([1, 10])
-        .range([1 , 10]); //getMaxOfOccurences(nationCounts)
+        .range([1 , 10]); //FIXME: proper scaling missing
     
     // add bubles to graph
     svg.append('g')
         .selectAll("dot")
-        .data(groupXSortY) //acts on dataset (json) provided by flask
+        // groupXSortY is created from the dataset provided via flask (see above)
+        // contains a nested array: [0] -> Name of the group 
+        //                          [1] -> array of objects, each object is one subject with its data as keys/values
+        .data(groupXSortY) 
         .enter()
         .append("circle")
-        .attr("class",  function(d) { 
-            return "bin " + d[0];}) //returns names of x
+        .attr("class",  function(d) {  //map 'svg elements' to classes
+            return "bin " + d[0];}) // returns names of X attribute
         .attr("cx", function (d) { 
-            return xScale(d[0]);}) //position according to names of x
+            return xScale(d[0]);}) // position data on x axis
         .attr("cy", function (d) { 
-            return yScale(d3.mean(d[1] , d => d[yAttr] )); } ) //loop through object/subjects per nation, calculate mean of Age
+            //loop through object/subjects per nation, calculate mean of yAttr of all nested objects
+            return yScale(d3.mean(d[1] , d => d[yAttr] )); } ) 
         .attr("r", function (d) { 
-            return bubbleScale(d[1].length );}) //scale by size of of each nations array == amount of subjects/samples
+            return bubbleScale(d[1].length );}) //scale by amount of objects inside each array
         .style("opacity", "0.7")
         .style("fill", "blue")
