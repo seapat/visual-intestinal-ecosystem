@@ -1,6 +1,6 @@
-const svgWidth = 500,
+const svgWidth = 600,
       svgHeight = 400,
-      margin = {top: 30, right: 30, bottom: 50, left: 50},
+      margin = {top: 30, right: 30, bottom: 100, left: 100},
       width = svgWidth - margin.left - margin.right,
       height = svgHeight - margin.top - margin.bottom;
       
@@ -49,19 +49,42 @@ let xAxis = svg.append("g")
   .attr("transform", "translate(" + margin.left + "," + (margin.top + height) + ")")
   .call(d3.axisBottom(scaleX));
 
+svg.append("text")
+  .attr("transform", "translate(" + (margin.left/2) + " ," +
+                       (height/2 + margin.top) + ")rotate(-90)")
+  .text("Number of subjects")
+  .style("text-anchor", "middle");
+
+svg.append("text")
+    .attr("transform", "translate(" + (margin.left + width/2) + " ," +
+                   (margin.top + height + margin.bottom/2) + ")")
+    .attr("id", "x_label")
+    .style("text-anchor", "middle");
+
+
 // append g element for bars
 svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
         .attr("id", "bars");
 
+var tooltip = svg
+    .append("text")
+    .attr("id", "tooltip")
+    .style("visibility", "hidden")
+    .style("text-anchor", "middle");
+
 function update(variable) {
     // update x Axis
     scaleX.domain(data[variable].map(function(d) { return d.label; }))
     xAxis.call(d3.axisBottom(scaleX))
-        let bars = svg.select("#bars").selectAll("rect.bar")
+    svg.select("#x_label")
+        .text(variable);
+    let bars = svg.select("#bars").selectAll("rect.bar")
         .data(data[variable])
-        bars.enter()
+    bars.enter()
         .append("rect")
+        .on("mouseover", mouseOver)
+        .on("mouseout", mouseOut)
         .attr("class", "bar")
         .merge(bars)
         .transition()
@@ -70,9 +93,23 @@ function update(variable) {
         .attr("y", function(d) { return scaleY(d.value); })
         .attr("width", scaleX.bandwidth())
         .attr("height", function(d) { return height - scaleY(d.value); })
-//        .attr("fill", d3.interpolateViridis(0.5))
-        bars.exit()
-        .remove()
+        
+    //        .attr("fill", d3.interpolateViridis(0.5))
+    bars.exit()
+    .remove()
     }
+
+function mouseOut(m, d){
+    d3.select(this).style("fill", "#507b9c");
+    tooltip.style("visibility", "hidden");
+}
+
+function mouseOver(m, d){
+    d3.select(this).style("fill", d3.interpolateViridis(0.5));
+    tooltip.style("visibility", "visible")
+        .attr("transform", "translate(" + (scaleX(d.label) + margin.left + scaleX.bandwidth()/2) + " ," + (scaleY(d.value) + margin.top - 20 ) + ")")
+    .text(d.value);
+
+}
 
 update("Age");
