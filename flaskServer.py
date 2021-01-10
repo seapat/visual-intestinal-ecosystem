@@ -3,6 +3,8 @@
 from flask import Flask, render_template, redirect, url_for, request, send_from_directory
 import os
 import pandas as pd
+import numpy as np
+import json
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -26,7 +28,7 @@ def home():
 
 @app.route('/metadata' , methods=["POST", "GET"])
 def metadata():
-    return render_template('metadata.html')
+    return render_template('metadata.html', data=get_metadata())
 
 @app.route('/analysis' , methods=["POST", "GET"])
 def analysis():
@@ -84,5 +86,32 @@ def combine_tsv(data_meta = "static/ecosystem_Metadata.tsv", data_bacteria = "st
 
     return (all_data, species_list)
 
+def get_metadata(data_meta = "static/ecosystem_Metadata.tsv"):
+    metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
+    # get only first sample of every subject
+    metadata = metadata.loc[metadata.groupby("SubjectID")["Time"].idxmin()]
+    # drop unnecessary columns
+    metadata = metadata.drop(['ProjectID', 'Time', 'SubjectID'], axis=1)
+    
+    # create bins for age and diversity
+    age_bins = pd.cut(metadata['Age'],bins=np.arange(0,101,20), labels=["<21", "21-40", "41-60", "61-80", ">80"])
+    diversity_bins = pd.cut(metadata['Diversity'],bins=np.linspace(metadata["Diversity"].min(), metadata["Diversity"].max(), 6), labels=["very low", "low", "medium", "high", "very high"], include_lowest=True)
+    
+    def count_occurences(c):
+        x = metadata[c]
+        if x.name == "Age":
+            df = x.groupby(age_bins).size()
+        elif x.name == "Diversity":
+            df = x.groupby(diversity_bins).size()
+        else:
+            df = x.groupby(x).size()
+        df.index.name = "label"
+        df.name = "value"
+        return df.reset_index()
+#    return [count_occurences(c).to_json(orient="records") for c in metadata.columns]
+    return {c: json.loads(count_occurences(c).to_json(orient="records")) for c in metadata.columns}
+
+
+    
 if __name__ == '__main__':
     app.run(debug=True, port=6001)

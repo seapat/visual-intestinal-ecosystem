@@ -2,6 +2,7 @@
 
 {% extends "base.html" %}
 {% block extrastyles %}
+<link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='meta_vis.css') }}" >
 <style>
   .metadata {
     font-weight: bold;
@@ -10,4 +11,14 @@
 {% endblock %}
 
 {% block content %}
+<div>
+<h2><select name="variables" id="select_variable">
+    </select></h2>
+<div id="meta_vis"></div>
+</div>
+
+<script type="text/javascript" >
+    const data = {{ data | safe }};
+</script>
+<script src="{{ url_for('static', filename='meta_vis.js') }}"></script>
 {% endblock %}

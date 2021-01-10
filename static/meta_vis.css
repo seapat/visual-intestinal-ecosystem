@@ -1,0 +1,13 @@
+.bg {
+    background-color: whitesmoke;
+    float: left;
+    border-style: double;
+  }
+
+.chart {
+    fill: whitesmoke;
+  }
+
+#bars {
+    fill: #507b9c;
+}
