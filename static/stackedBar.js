@@ -30,58 +30,26 @@ console.log("separator")
 
 // FUNCTIONS //
 
-/*
-//creates map of different values inside a value, each row with that column is inside an array of that keys' value
-function groupBy (columnName) {
-    return d3.group(dataset, key => (key[columnName] == null) ? "Unknown" : key[columnName])
-}
-console.log(groupBy("Nationality"))
-*/
-
-/*
-//takes a grouped map and secondary column by which the first level should be sorted by
-// if no secondary column is specified, will sort by amount of objects per group
-function sortByMean (groupedData, columnName=null) {
-    if (columnName != null) { 
-        return d3.sort(groupedData, d =>  d3.mean(
-            d[1], value => value[columnName])); //d[1] references the array of arrays per group-object
+// create distinct groups from continuous data
+function generate_groups(data, field, amount) {
+    const min = d3.min(data, d => d[field]);
+    const max = d3.max(data, d => d[field]);
+    const ticks = d3.ticks(min, max, amount);
+    function get_group(f) {
+      if (f < ticks[0]) return `${min}-${ticks[0]}`;
+      for(let i = 1; i < ticks.length; i++) {
+        if (f < ticks[i]) return `${ticks[i-1]}-${ticks[i]}`;
+      }
+      return `${ticks[ticks.length - 1]}-${max}`;
     }
-    else {
-        return d3.sort(groupedData, d => d[1].length);
-    }
-}
-// console.log( sortByMean(groupBy("Nationality"), "Age"));
-// console.log( sortByMean(groupBy("Nationality")));
-*/
-
-/*
-// extract rows by name and put into map, rename empty (null) cells to "Unkown"
-// Wrapping arrow functions into normal functions is prbably bad style...
-function extractColumn(columnName) {
-    return dataset.map(row => (row[columnName] == null) ? "Unknown" : row[columnName]);
-};
-console.log( extractColumn("Nationality"));
-*/
-
-/*
-// count occurences of values of given map https://stackoverflow.com/a/46090384/14276346
-function countOccurences(columnName) {
-    return d3.rollup(dataset, value => value.length, key => (key[columnName] == null) ? "Unknown" : key[columnName]);
-};
-console.log(countOccurences("Nationality"));
-*/
-
-/*
-//returns max of a given map with numbers as values
-function getMaxOfOccurences(columnName) {
-    //return Math.max.apply(Math, Array.from( countsMap.values()));
-    return d3.max(
-        d3.rollup(dataset, value => value.length, key => (key[columnName] == null) ? "Unknown" : key[columnName]),
-        d => d[1]);
-};
-console.log(getMaxOfOccurences("Nationality"));
-*/
-
+    data.map(d => d[`${field}_group`] = get_group(d[field]));
+  }
+  
+  // data
+  generate_groups(dataset, 'Age', 4);
+  generate_groups(dataset, 'Diversity', 4);
+  console.log(dataset);
+  
 // INPUT //
 
 let xAttr = "Nationality"
