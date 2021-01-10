@@ -1,15 +1,8 @@
-# Mario Rauh 3916968
 # Sean Klein 5575709
 
 from flask import Flask, render_template, redirect, url_for, request, send_from_directory
 import os
 import pandas as pd
-import numpy as np
-import json
-from werkzeug.utils import secure_filename
-
-UPLOAD_FOLDER = '/UploadFiles'   # path to directory in which uploaded files will be saved 
-allowed_extensions = {'txt', 'csv', 'tsv'}
 
 app = Flask(__name__)
 app.config['DEBUG'] = True
@@ -28,17 +21,16 @@ def base():
 
 @app.route('/home' , methods=["POST", "GET"])
 def home():
-    (data, species_list) = visualizeData()
-    return render_template('home.html', jsonTable = data, species = species_list)
+    data = combine_tsv()
+    return render_template('home.html', jsonTable = data)
 
 @app.route('/metadata' , methods=["POST", "GET"])
 def metadata():
-    return render_template('metadata.html', data=get_metadata())
+    return render_template('metadata.html')
 
 @app.route('/analysis' , methods=["POST", "GET"])
 def analysis():
-    (data, species_list) = visualizeData()
-    return render_template('analysis.html', jsonTable = data, species = species_list)
+    return render_template('analysis.html')
 
 @app.route('/about' , methods=["POST", "GET"])
 def about():
@@ -50,53 +42,32 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-@app.route('/getfile', methods=['POST'])
-def upload_files():
-    if request.method == 'POST':
-        metafile = request.files['meta']
-        bacteriafile = request.files['bacteria']
-
-        filename_meta = secure_filename(metafile.filename)
-        filename_bacteria = secure_filename(bacteriafile.filename)
-
-        metafile.save(os.path.join("UploadFiles", "meta.csv"))
-        bacteriafile.save(os.path.join("UploadFiles", "bact.csv"))
-                      
-        return home()       
-
-    else:
-        result = request.args.get['meta']
-
-    return result
-
-
-
 ##############
 # Functions  #
 ##############
 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
-
-def combine_tsv(metadata, bacteria):
+def combine_tsv(data_meta = "static/ecosystem_Metadata.tsv", data_bacteria = "static/ecosystem_HITChip.tsv"):
     # Additional Python Code to perform small computations
 
     # merge two tsv files into one json file
     # Input: 2 tsv files (1 metadata, 1 bacteria)
     # output: 1 json file
-    '''
+
     import pandas as pd
     metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
     bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
-'''
-
-    species_list = [b for b in bacteria.columns]
-
-    # normalize bacteria dataframe
-    bacteria = (bacteria - bacteria.min())/(bacteria.max() - bacteria.min())
 
     # dataframe including all columns of both files in one level
     all_data = pd.concat([metadata, bacteria], axis=1)
+    #all_data.to_csv("All_Data.csv")
+    #print(all_data)
+
+    # Creating a new column "bacterias" within the metadata dataframe
+    # for each (i,bacterias) cell (i=0 -> len(metadata.SampleID)) insert the i-th row of bacteria
+    metadata['Bacteria'] = ""
+    metadata['Bacteria'] = metadata['Bacteria'].astype(object)
+    for index, row in metadata.iterrows():
+        metadata.at[index, 'Bacteria'] = bacteria.loc[[index]]
 
     # find out if we have more than one data point per subject (we do):
     # all_data.groupby("SubjectID").size().to_frame().groupby(by=0).size()
@@ -106,74 +77,17 @@ def combine_tsv(metadata, bacteria):
     subject_times = metadata[["SubjectID", "Time"]].groupby("SubjectID").min()
     # pd.merge removes indexes if they are not used for the join, so this step
     # needs to take place when we do not need the SampleIDs anymore.
-    all_data = pd.merge(
+    metadata = pd.merge(
         left  = subject_times,
-        right = all_data,
+        right = metadata,
         how   ='inner',
         on    = ["SubjectID", "Time"]
     )
 
-    all_data = all_data.to_json(orient="records")  # convert to json format
+    #metadata.to_csv("Complete_Data.csv")   # convert to csv
+    metadata = metadata.to_json(orient="records")  # convert to json format, this takes a while. # removed from to_json(): "Complete_Data.json",
 
-    return (all_data, species_list)
-
-def get_metadata(data_meta = "static/ecosystem_Metadata.tsv"):
-    metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
-    # get only first sample of every subject
-    metadata = metadata.loc[metadata.groupby("SubjectID")["Time"].idxmin()]
-    # drop unnecessary columns
-    metadata = metadata.drop(['ProjectID', 'Time', 'SubjectID'], axis=1)
-    
-    # create bins for age and diversity
-    age_bins = pd.cut(metadata['Age'],bins=np.arange(0,101,20), labels=["<21", "21-40", "41-60", "61-80", ">80"])
-    diversity_bins = pd.cut(metadata['Diversity'],bins=np.linspace(metadata["Diversity"].min(), metadata["Diversity"].max(), 6), labels=["very low", "low", "medium", "high", "very high"], include_lowest=True)
-    
-    def count_occurences(c):
-        x = metadata[c]
-        if x.name == "Age":
-            df = x.groupby(age_bins).size()
-        elif x.name == "Diversity":
-            df = x.groupby(diversity_bins).size()
-        else:
-            df = x.groupby(x).size()
-        df.index.name = "label"
-        df.name = "value"
-        return df.reset_index()
-#    return [count_occurences(c).to_json(orient="records") for c in metadata.columns]
-    return {c: json.loads(count_occurences(c).to_json(orient="records")) for c in metadata.columns}
-
-
-    
-def visualizeData():
-    '''
-    data_meta = "static/ecosystem_Metadata.tsv"
-    data_bacteria = "static/ecosystem_HITChip.tsv"
-
-    import pandas as pd
-    metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
-    bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
-   
-    return combine_tsv(metadata, bacteria)
-    '''
-    if os.path.isfile("UploadFiles/meta.csv") and os.path.isfile("UploadFiles/bact.csv"):
-
-        data_meta = "UploadFiles/meta.csv"
-        data_bacteria = "UploadFiles/bact.csv"
-
-        metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
-        bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
-
-        return combine_tsv(metadata, bacteria)
-
-    else:
-        
-        data_meta = "static/ecosystem_Metadata.tsv"
-        data_bacteria = "static/ecosystem_HITChip.tsv"
-
-        metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
-        bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
-
-        return combine_tsv(metadata, bacteria)
+    return metadata
 
 if __name__ == '__main__':
     app.run(debug=True, port=6001)
