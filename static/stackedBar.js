@@ -1,9 +1,5 @@
 //Sean Klein 5575709
 
-// gets the nested javascript object containing metadata and measurment data as an additional
-// all other operations (extract axis labels, count or summarize column values) are done in javascript
-
-
 console.log(dataset);
 
 /*
@@ -27,10 +23,10 @@ console.log(max)
 console.log("separator")
 */
 
-
 // FUNCTIONS //
 
-// create distinct groups from continuous data
+// create distinct groups from continuous data and append as extra columns (in place!!!)
+//Florain Keller
 function generate_groups(data, field, amount) {
     const min = d3.min(data, d => d[field]);
     const max = d3.max(data, d => d[field]);
@@ -44,28 +40,94 @@ function generate_groups(data, field, amount) {
     }
     data.map(d => d[`${field}_group`] = get_group(d[field]));
   }
-  
-  // data
-  generate_groups(dataset, 'Age', 4);
-  generate_groups(dataset, 'Diversity', 4);
-  console.log(dataset);
-  
+
+generate_groups(dataset, 'Age', 4);
+generate_groups(dataset, 'Diversity', 4);
+console.log(dataset);
+
 // INPUT //
 
+//both can take the form of "Nationality", "Sex", "Age_group", "BMI_group", "Diversity_group"
 let xAttr = "Nationality"
-let yAttr = "Age"
-let color = "Sex"
+let barGroup = "Sex"
 
 // VARIABLES //
 
+/*
 let groupX = d3.group(dataset, key => (key[xAttr] == null) ? "Unknown" : key[xAttr])
-let groupY = d3.group(dataset, key => (key[yAttr] == null) ? "Unknown" : key[yAttr])
-let groupColor = d3.group(dataset, key => (key[color] == null) ? "Unknown" : key[color])
 
-let groupXSortY = d3.sort(groupX, group =>  d3.mean(group[1], obj => obj[yAttr])); //d[1] references the array of objects
+// groupXSortY is created from the dataset provided via flask (see above)
+// contains a nested array: [0] -> Name of the group 
+//                          [1] -> array of objects, each object is one subject with its data as keys/values
+// let groupXSortY = d3.sort(groupX, group =>  d3.mean(group[1], obj => obj[yAttr])); //d[1] references the array of objects
+let groupXSortY = d3.sort(groupX, group =>  group[1].length); //d[1] references the array of objects
 
 console.log(groupX)
 console.log(groupXSortY)
+
+*/
+
+// create map with nested maps
+// keys: X-Axis, values: maps of stacks: key-value
+let countMap = d3.rollup(dataset, 
+    v => v.length, 
+    key => (key[xAttr] == null) ? "Unknown" : key[xAttr], 
+    key => (key[barGroup] == null) ? "Unknown" : key[barGroup]);
+
+
+console.log(countMap)
+console.log(Array.from(countMap.keys()))
+console.log(Array.from(countMap.values().next().value.keys()))
+
+// let countMap2 = d3.rollup(dataset, 
+//     v => v.length, 
+//     key => (key[barGroup] == null) ? "Unknown" : key[barGroup],
+//     key => (key[xAttr] == null) ? "Unknown" : key[xAttr]);
+
+// console.log(countMap2)
+
+// convert map to array of objects of length 1
+// key: name on x-Axis, value: stacks for bar as map
+let countArray = Array.from(countMap, ([key, value]) => ({key, value}));
+
+console.log(countArray)
+
+//https://stackoverflow.com/a/44444443/14276346
+//Loop through the nested array and create a new array element that converts each individual nested element into a key/value pair in a single object.
+var flatCountArray = [];
+countArray.forEach(function(d) {
+var obj = { Group: d.key } //old key -> value of 'Group'
+    d.value.forEach(function(value, key) { //append key value pairs that were previously inside nested maps
+        obj[key] = value; 
+    });
+flatCountArray.push(obj);
+});
+
+console.log(flatCountArray)
+
+
+console.log(Array.from(     
+    flatCountArray,       
+    obj => obj.Group) 
+    )
+
+// d3.stack automatically defines position for different items to be stacked
+// on top of each other
+let stack = d3.stack()
+    .keys( ["male", "female", "Unknown"] )
+    .value(function(d, key) {
+        if (d[key] == null){ //if one group has no values for a bar color, e.g. no "unkowns"
+            return 0 //return 0 instead of NaN, so that no error is thrown (no stack is created either way)
+        }
+        else {
+            return d[key]; //key is each type of occurence of bar-attribute
+        } 
+        
+      })
+    .order(d3.stackOrderNone)
+    .offset(d3.stackOffsetNone);
+
+console.log(stack(flatCountArray));
 
 // DIMENSIONS //
 
@@ -86,7 +148,10 @@ let svg = d3.select("#home_chart")
 
     // y scale
     let yScale = d3.scaleLinear()
-        .domain([0, d3.max(dataset, d => d[yAttr])]) //get max Age
+        .domain([0, d3.max( //find max
+            d3.rollup(dataset, value => value.length, //count occurences, output as map
+                key => (key[xAttr] == null) ? "Unknown" : key[xAttr]) // replace null by unkown
+            .values()) ]) //iterate over value
         .range([ height, 0]);
 
     // y ticks
@@ -99,18 +164,17 @@ let svg = d3.select("#home_chart")
         .attr("text-anchor", "start")
         .attr("x", -20 )
         .attr("y", -20 )
-        .text("average " + yAttr)
+        .text("Subjects")
         //.style("font-size", 12);
 
 // X AXIS //
     
     // x scale
-    let xScale = d3.scalePoint()
-        .domain(Array.from(     //create Array of Names
-                groupXSortY,    //group by x attribute, sorted by y attr
-                obj => obj[0])) //extract name
+    let xScale = d3.scaleBand()
+        .domain(Array.from(countMap.keys()) 
+            ) 
         .range([0, width])
-        .padding([0.5]);
+        .padding(0.5);
 
     // x ticks
     svg.append("g")
@@ -126,30 +190,27 @@ let svg = d3.select("#home_chart")
         .text(xAttr)
         //.style("font-size", 12);
 
-// DRAW BUBBLES //
+// DRAW BARS //
 
-    // scale bubble size
-    let bubbleScale = d3.scaleSqrt()
-        .domain([1, 10])
-        .range([1 , 10]); //FIXME: proper scaling missing
+    // color palette = one color per subgroup
+    let color = d3.scaleOrdinal()
+        .domain(Array.from(countMap.values().next().value.keys())
+            ) 
+        .range(['blue', 'pink','green','red','orange']) //TODO: add Color-Array from lecture
     
     // add bubles to graph
     svg.append('g')
-        .selectAll("dot")
-        // groupXSortY is created from the dataset provided via flask (see above)
-        // contains a nested array: [0] -> Name of the group 
-        //                          [1] -> array of objects, each object is one subject with its data as keys/values
-        .data(groupXSortY) 
-        .enter()
-        .append("circle")
-        .attr("class",  function(d) {  //map 'svg elements' to classes
-            return "bin " + d[0];}) // returns names of X attribute
-        .attr("cx", function (d) { 
-            return xScale(d[0]);}) // position data on x axis
-        .attr("cy", function (d) { 
-            //loop through object/subjects per nation, calculate mean of yAttr of all nested objects
-            return yScale(d3.mean(d[1] , d => d[yAttr] )); } ) 
-        .attr("r", function (d) { 
-            return bubbleScale(d[1].length );}) //scale by amount of objects inside each array
-        .style("opacity", "0.7")
-        .style("fill", "blue")
+        .selectAll("g")
+        .data(stack(flatCountArray))
+        .enter().append("g")
+            .attr("fill", function(d) { return color(d.key); })
+            .selectAll("rect")
+            .data(function(d) { return d; })
+            .enter().append("rect")
+                // .attr("class",  function(d) {  //map 'svg elements' to classes
+                //     return "bin " + d[0];}) // returns names of X attribute
+                .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis 
+                .attr("y", function (d) { return yScale(d[1]); } ) // d[1] denotes end postion of stack
+                .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
+                .attr("width", xScale.bandwidth())
+                // .style("opacity", "0.7")
