@@ -230,6 +230,7 @@ console.log(stack(flatCountArray));
                 .on("mousemove",(event,d) => {whileMouseOver(event,d)})
                 .on("mouseout",(event,d) => {whileMouseOut(event,d)})
                 .style("opacity", "0.8")
+                .attr("stroke", "grey")
 
 
 // TOOLTIP //
