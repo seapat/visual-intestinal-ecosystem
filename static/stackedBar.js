@@ -63,8 +63,8 @@ console.log(dataset);
 // INPUT //
 
 //both can take the form of "Nationality", "Sex", "Age_group", "BMI_group", "Diversity_group"
-let xAttr = "Nationality"
-let barGroup = "Sex"
+let xAttr = "Sex"
+let barGroup = "Nationality"
 
 // VARIABLES //
 
@@ -125,10 +125,10 @@ console.log(Array.from(flatCountArray, obj => obj.Group))
 // d3.stack automatically defines position for different items to be stacked
 // on top of each other
 let stack = d3.stack()
-    .keys( ["male", "female", "Unknown"] )
+    .keys( Array.from(countMap.values().next().value.keys()))
     .value(function(d, key) {
         if (d[key] == null){ //if one group has no values for a bar color, e.g. no "unkowns"
-            return 0 //return 0 instead of NaN, so that no error is thrown (no stack is created either way)
+            return 0 //return 0 instead of NaN to avoid parsing warnings (no stack is created either way)
         }
         else {
             return d[key]; //key is each type of occurence of bar-attribute
@@ -145,8 +145,9 @@ console.log(stack(flatCountArray));
     // y scale
     let yScale = d3.scaleLinear()
         .domain([0, d3.max( //find max
-            d3.rollup(dataset, value => value.length, //count occurences, output as map
-                key => (key[xAttr] == null) ? "Unknown" : key[xAttr]) // replace null by unkown
+            d3.rollup(dataset, //get counts as map-values
+              value => value.length, //count occurences, output as map
+              key => (key[xAttr] == null) ? "Unknown" : key[xAttr]) // replace null by unkown
             .values()) ]) //iterate over value
         .range([ height, 0]);
 
@@ -167,8 +168,7 @@ console.log(stack(flatCountArray));
     
     // x scale
     let xScale = d3.scaleBand()
-        .domain(Array.from(countMap.keys()) 
-            ) 
+        .domain(Array.from(countMap.keys())) 
         .range([0, width])
         .padding(0.5);
 
@@ -188,11 +188,14 @@ console.log(stack(flatCountArray));
 
 // DRAW BARS //
 
+              console.log(Array.from(countMap.values().next().value.keys()))
+
     // color palette = one color per subgroup
     let color = d3.scaleOrdinal()
-        .domain(Array.from(countMap.values().next().value.keys())
+        .domain(Array.from(countMap.values().next().value.keys()) //keys from first entry in Counts
             ) 
         .range(['blue','pink','green','red','orange']) //TODO: add Color-Array from lecture
+        // .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"])
     
     // add stacks to graph
     svg.append('g')
@@ -216,6 +219,7 @@ console.log(stack(flatCountArray));
 
 // TOOLTIP //
 
+// helpful: https://stackoverflow.com/a/63693424
 // Define the div for the tooltip
 const tooltip = d3
     .select('body')
@@ -247,5 +251,27 @@ function whileMouseOver(event,d){
 
 function whileMouseOut(event,d) {
     tooltip
-      .style("visibility","hidden")
+      .style("visibility","hidden");
 }
+
+// LEGEND //
+
+//http://bl.ocks.org/gencay/4629518
+let legend = svg.selectAll(".legend")
+  .data(Array.from(countMap.values().next().value.keys()))
+  .enter().append("g")
+  .attr("class", "legend")
+  .attr("transform", function(d, i) { return "translate(0," + i * 25 + ")"; }); //x = 0, y 
+
+legend.append("rect")
+  .attr("x", width - 20)
+  .attr("width", 20)
+  .attr("height", 20)
+  .style("fill", color);
+
+legend.append("text")
+  .attr("x", width - 25)
+  .attr("y", 10)
+  .attr("dy", ".35em")
+  .style("text-anchor", "end")
+  .text(function(d) { return d; });
