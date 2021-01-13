@@ -1,5 +1,19 @@
 //Sean Klein 5575709
 
+// DIMENSIONS //
+
+let margin = {top: 100, right: 150, bottom: 60, left: 50},
+    width = 1400 - margin.left - margin.right,
+    height = 800 - margin.top - margin.bottom;
+
+// create intial svg
+let svg = d3.select("#home_chart")
+    .append('svg')
+    .attr("width", width + margin.left+ margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
 console.log(dataset);
 
 /*
@@ -129,21 +143,6 @@ let stack = d3.stack()
 
 console.log(stack(flatCountArray));
 
-// DIMENSIONS //
-
-let margin = {top: 100, right: 150, bottom: 60, left: 50},
-    width = 1400 - margin.left - margin.right,
-    height = 800 - margin.top - margin.bottom;
-
-// create intial svg
-let svg = d3.select("#home_chart")
-    .append('svg')
-    .attr("width", width + margin.left+ margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-
-
 // Y AXIS //
 
     // y scale
@@ -198,7 +197,7 @@ let svg = d3.select("#home_chart")
             ) 
         .range(['blue', 'pink','green','red','orange']) //TODO: add Color-Array from lecture
     
-    // add bubles to graph
+    // add stacks to graph
     svg.append('g')
         .selectAll("g")
         .data(stack(flatCountArray))
@@ -213,4 +212,40 @@ let svg = d3.select("#home_chart")
                 .attr("y", function (d) { return yScale(d[1]); } ) // d[1] denotes end postion of stack
                 .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
                 .attr("width", xScale.bandwidth())
+                .on("mousemove",(event,d) => {whileMouseOver(event,d)})
+                .on("mouseout",(event,d) => {whileMouseOut(event,d)});
                 // .style("opacity", "0.7")
+
+// Define the div for the tooltip
+const tooltip = d3
+    .select('body')
+    .append('tooltip')
+    .attr('class', 'tooltip')
+    .style("visibility","hidden");
+
+function whileMouseOver(event,d){ 
+    // console.log(d);
+    // console.log(d.data);
+    // console.log(d3.select(event.currentTarget).node());
+
+    // console.log(d3.pointer(event));
+    // console.log(d3.select(this).text(d))
+
+    
+  tooltip
+    .style("visibility","visible")
+    //d.data returns the values of the bar as a object
+    .html(JSON.stringify(d.data) //write to string and format using regex & replace()
+        .replace(/,/g , "<br>")
+        .replace(/{|}|"/g, "")
+        .replace(/:/g, ": ")
+        )
+    .style('left', event.x + 'px')
+    .style('top', event.y - 30 + 'px'); //-30 to position above mouse pointer
+}
+
+
+function whileMouseOut(event,d) {
+    tooltip
+      .style("visibility","hidden")
+}

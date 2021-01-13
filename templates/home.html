@@ -3,11 +3,6 @@
 {% extends "base.html" %}
 {% block content %}
 
-<!--div element that contains the tooltip-->
-<div id="graph">
-    <div id="tooltip"> </div>
-</div>
-
 <!-- div for the plot -->
 <div class="element" id="home_chart"></div>
 
@@ -19,7 +14,7 @@
 <!-- load visualisation-->
 <script src="{{ url_for('static', filename='stackedBar.js') }}"></script>
 
-
+{% endblock %}
 {% block extrastyles %}
 <style>
   .home {
