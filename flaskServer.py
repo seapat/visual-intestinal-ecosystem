@@ -50,8 +50,6 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'favicon.ico', mimetype='image/vnd.microsoft.icon')
 
-<<<<<<< HEAD
-=======
 @app.route('/getfile', methods=['POST'])
 def upload_files():
     if request.method == 'POST':
@@ -71,9 +69,6 @@ def upload_files():
 
     return result
 
-
-
->>>>>>> origin/main
 ##############
 # Functions  #
 ##############
