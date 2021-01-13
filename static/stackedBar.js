@@ -40,7 +40,7 @@ console.log("separator")
 // FUNCTIONS //
 
 // create distinct groups from continuous data and append as extra columns (in place!!!)
-//Florain Keller
+// Florian Kellner 4090126
 function generate_groups(data, field, amount) {
     const min = d3.min(data, d => d[field]);
     const max = d3.max(data, d => d[field]);
@@ -55,6 +55,7 @@ function generate_groups(data, field, amount) {
     data.map(d => d[`${field}_group`] = get_group(d[field]));
   }
 
+  // create distinct groups for both non-categorical values in the table
 generate_groups(dataset, 'Age', 4);
 generate_groups(dataset, 'Diversity', 4);
 console.log(dataset);
@@ -119,11 +120,7 @@ flatCountArray.push(obj);
 
 console.log(flatCountArray)
 
-
-console.log(Array.from(     
-    flatCountArray,       
-    obj => obj.Group) 
-    )
+console.log(Array.from(flatCountArray, obj => obj.Group))
 
 // d3.stack automatically defines position for different items to be stacked
 // on top of each other
@@ -195,7 +192,7 @@ console.log(stack(flatCountArray));
     let color = d3.scaleOrdinal()
         .domain(Array.from(countMap.values().next().value.keys())
             ) 
-        .range(['blue', 'pink','green','red','orange']) //TODO: add Color-Array from lecture
+        .range(['blue','pink','green','red','orange']) //TODO: add Color-Array from lecture
     
     // add stacks to graph
     svg.append('g')
@@ -213,8 +210,11 @@ console.log(stack(flatCountArray));
                 .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
                 .attr("width", xScale.bandwidth())
                 .on("mousemove",(event,d) => {whileMouseOver(event,d)})
-                .on("mouseout",(event,d) => {whileMouseOut(event,d)});
-                // .style("opacity", "0.7")
+                .on("mouseout",(event,d) => {whileMouseOut(event,d)})
+                .style("opacity", "0.8")
+
+
+// TOOLTIP //
 
 // Define the div for the tooltip
 const tooltip = d3
@@ -224,14 +224,14 @@ const tooltip = d3
     .style("visibility","hidden");
 
 function whileMouseOver(event,d){ 
-    // console.log(d);
-    // console.log(d.data);
-    // console.log(d3.select(event.currentTarget).node());
+    // console.log(d); // range of current stack
+    // console.log(d.data); //data of whole bar as object
+    // console.log(d3.pointer(event)); //coords of mous pointer
 
-    // console.log(d3.pointer(event));
-    // console.log(d3.select(this).text(d))
+    // console.log(d3.select(this))  // returns some ??? object
+    // console.log(d3.select(event.currentTarget)); // same as select.this()
+    // console.log(d3.select(event.currentTarget).node()); //returns svg of stack
 
-    
   tooltip
     .style("visibility","visible")
     //d.data returns the values of the bar as a object
@@ -240,10 +240,10 @@ function whileMouseOver(event,d){
         .replace(/{|}|"/g, "")
         .replace(/:/g, ": ")
         )
-    .style('left', event.x + 'px')
-    .style('top', event.y - 30 + 'px'); //-30 to position above mouse pointer
-}
+    .style('left', event.x + 25 + 'px')
+    .style('top', event.y + 'px');
 
+}
 
 function whileMouseOut(event,d) {
     tooltip
