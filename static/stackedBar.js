@@ -60,11 +60,27 @@ generate_groups(dataset, 'Age', 4);
 generate_groups(dataset, 'Diversity', 4);
 console.log(dataset);
 
+
+
 // INPUT //
 
 //both can take the form of "Nationality", "Sex", "Age_group", "BMI_group", "Diversity_group"
-let xAttr = "Sex"
-let barGroup = "Nationality"
+let xAttr = "Nationality"
+let barGroup = "Age_group"
+
+
+// const GROUPS = ['BMI_group', 'Age_group', 'Diversity_group', 'Sex', 'Nationality', 'DNA_extraction_method']
+
+// const xAttr = d3.select('#x_axis');
+// xAttr.selectAll("option")
+//     .data(GROUPS)
+//     .enter()
+//     .append("option")
+//     .html(function(d) {return d;})
+
+// xAttr.on('change', event => update(event.target.value));
+
+
 
 // VARIABLES //
 
@@ -194,8 +210,7 @@ console.log(stack(flatCountArray));
     let color = d3.scaleOrdinal()
         .domain(Array.from(countMap.values().next().value.keys()) //keys from first entry in Counts
             ) 
-        .range(['blue','pink','green','red','orange']) //TODO: add Color-Array from lecture
-        // .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"])
+        .range(d3.schemeTableau10     ) //for reference: https://github.com/d3/d3-scale-chromatic/tree/v2.0.0#categorical
     
     // add stacks to graph
     svg.append('g')
