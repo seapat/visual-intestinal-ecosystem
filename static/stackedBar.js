@@ -7,7 +7,7 @@ let margin = {top: 100, right: 150, bottom: 60, left: 50},
     height = 800 - margin.top - margin.bottom;
 
 // create intial svg
-let svg = d3.select("#home_chart")
+let svg = d3.select("#stacked_bar")
     .append('svg')
     .attr("width", width + margin.left+ margin.right)
     .attr("height", height + margin.top + margin.bottom)
