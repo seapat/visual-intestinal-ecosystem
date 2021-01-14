@@ -33,7 +33,7 @@ def home():
 
 @app.route('/metadata' , methods=["POST", "GET"])
 def metadata():
-    return render_template('metadata.html', data=get_metadata())
+    return render_template('metadata.html', data=get_metadata_all())
 
 @app.route('/analysis' , methods=["POST", "GET"])
 def analysis():
@@ -116,6 +116,15 @@ def combine_tsv(metadata, bacteria):
     all_data = all_data.to_json(orient="records")  # convert to json format
 
     return (all_data, species_list)
+
+def get_metadata_all(data_meta = "static/ecosystem_Metadata.tsv"):
+    metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
+    # get only first sample of every subject
+    metadata = metadata.loc[metadata.groupby("SubjectID")["Time"].idxmin()]
+    # drop unnecessary columns
+    metadata = metadata.drop(['ProjectID', 'Time', 'SubjectID'], axis=1)
+    metadata.columns = ["Age", "Sex", "Nationality", "DNA extraction method", "Diversity", "BMI group"]
+    return metadata.to_json(orient="records")
 
 def get_metadata(data_meta = "static/ecosystem_Metadata.tsv"):
     metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
