@@ -273,21 +273,33 @@ function whileMouseOut(event,d) {
 // LEGEND //
 
 //http://bl.ocks.org/gencay/4629518
-let legend = svg.selectAll(".legend")
+let legend = svg.selectAll("legend.colors")
   .data(Array.from(countMap.values().next().value.keys()))
-  .enter().append("g")
+  .enter()
+  .append("g")
   .attr("class", "legend")
-  .attr("transform", function(d, i) { return "translate(0," + i * 25 + ")"; }); //x = 0, y 
+  .attr("transform", function(d, i) { return "translate(0," + (15 + i * 25) + ")"; });
 
 legend.append("rect")
-  .attr("x", width - 20)
+  .attr("x", width)
   .attr("width", 20)
   .attr("height", 20)
   .style("fill", color);
 
 legend.append("text")
-  .attr("x", width - 25)
+  .attr("x", width - 5 )
   .attr("y", 10)
   .attr("dy", ".35em")
   .style("text-anchor", "end")
   .text(function(d) { return d; });
+
+svg.selectAll("legend.title")
+    .data([0]) //empty data to draw only once
+    .enter()
+    .append("text")
+    .attr("class", "title")
+    .text(barGroup)
+    .attr("x", width)
+    .attr("y", 0)
+    .style("text-anchor", "middle")
+
