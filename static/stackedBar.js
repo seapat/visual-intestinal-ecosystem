@@ -79,6 +79,9 @@ function drawGraph(xAttr, colorAttr) {
 
     svg.html('');
 
+
+
+
     // VARIABLES //
 
     // create map with nested maps
@@ -117,7 +120,7 @@ function drawGraph(xAttr, colorAttr) {
     // d3.stack automatically defines position for different items to be stacked
     // on top of each other
     let stack = d3.stack()
-        .keys( colorKeys)
+        .keys(colorKeys)
         .value(function(d, key) {
             if (d[key] == null){ //if one group has no values for a bar color, e.g. no "unkowns"
                 return 0 //return 0 instead of NaN to avoid parsing warnings (no stack is created either way)
@@ -189,6 +192,7 @@ function drawGraph(xAttr, colorAttr) {
         svg.append('g')
             .selectAll("g")
             .data(stack(flatCountArray))
+            
             .enter().append("g")
                 .attr("fill", function(d) { return color(d.key); })
                 .selectAll("rect")
@@ -198,13 +202,17 @@ function drawGraph(xAttr, colorAttr) {
                     //     return "bin " + d[0];}) // returns names of X attribute
                     .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis 
                     .attr("y", function (d) { return yScale(d[1]); } ) // d[1] denotes end postion of stack
-                    .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
+                    
                     .attr("width", xScale.bandwidth())
                     .on("mousemove",(event,d) => {whileMouseOver(event,d)})
                     .on("mouseout",(event,d) => {whileMouseOut(event,d)})
                     .style("opacity", "0.8")
                     .attr("stroke", "grey")
-
+                    .data(function(d) { return d; })
+                        .transition()
+                        .duration(400)
+                        .ease(d3.easeLinear)
+                    .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
 
     // TOOLTIP //
 
@@ -275,5 +283,7 @@ function drawGraph(xAttr, colorAttr) {
         .attr("x", width + 20)
         .attr("y", 0)
         .style("text-anchor", "end")
+
+
 
 };
