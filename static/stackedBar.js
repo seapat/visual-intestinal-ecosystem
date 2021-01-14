@@ -208,10 +208,12 @@ function drawGraph(xAttr, colorAttr) {
                     .on("mouseout",(event,d) => {whileMouseOut(event,d)})
                     .style("opacity", "0.8")
                     .attr("stroke", "grey")
+
                     .data(function(d) { return d; })
                         .transition()
                         .duration(400)
                         .ease(d3.easeLinear)
+
                     .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
 
     // TOOLTIP //
@@ -283,7 +285,4 @@ function drawGraph(xAttr, colorAttr) {
         .attr("x", width + 20)
         .attr("y", 0)
         .style("text-anchor", "end")
-
-
-
 };
