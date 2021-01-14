@@ -2,7 +2,7 @@
 
 // DIMENSIONS //
 
-let margin = {top: 30, right: 30, bottom: 65, left: 50},
+let margin = {top: 40, right: 30, bottom: 65, left: 50},
     width = 1400 - margin.left - margin.right,
     height = 800 - margin.top - margin.bottom;
 
