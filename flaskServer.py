@@ -20,11 +20,7 @@ app.config['DEBUG'] = True
 
 @app.route('/')
 def index():
-    return redirect(url_for('base'))
-
-@app.route('/base' , methods=["POST", "GET"])
-def base():
-    return render_template('base.html')
+    return redirect(url_for('home'))
 
 @app.route('/home' , methods=["POST", "GET"])
 def home():
