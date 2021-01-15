@@ -16,10 +16,14 @@ const LEGEND_TILE_WIDTH = 20;
 const LEGEND_TILE_HEIGHT = 10;
 const LEGEND_TILE_PADDING = 5;
 
+// reference mean
+const REFERENCE_MEAN_OPTIONS = ['species mean', 'group mean'];
+let REFERENCE_MEAN = REFERENCE_MEAN_OPTIONS[0];
+
 // data
 generate_groups(DATA, 'Age', 4);
 generate_groups(DATA, 'Diversity', 4);
-const GROUPS = preprocess_groups(
+let GROUPS = preprocess_groups(
   ['BMI_group', 'Age_group', 'Diversity_group', 'Sex', 'Nationality', 'DNA_extraction_method']
 );
 
@@ -31,6 +35,19 @@ GROUPS.map(g =>
     .html(g.name)
 );
 grouping_choice.on('change', event => paint_group(GROUPS.filter(g => g.name == event.target.value)[0]));
+
+// #### dropdown for choosing reference mean
+const reference_mean_choice = d3.select('#select_reference_mean');
+REFERENCE_MEAN_OPTIONS.map(o =>
+  reference_mean_choice.append('option')
+    .attr('value', o)
+    .html(o)
+);
+reference_mean_choice.on('change', event => {
+  REFERENCE_MEAN = event.target.value;
+  GROUPS = preprocess_groups(GROUPS.map(g => g.name));
+  paint_group(GROUPS.filter(g => g.name == grouping_choice._groups[0][0].value)[0]);
+});
 
 // #### preprocessing (groupings) ####
 
@@ -101,18 +118,34 @@ function preprocess_groups(group_names) {
     // create arrays with data for each category
     const grouped_data = d3.group(DATA, d => d[group.name]);
 
+
     // calculate mean differences per group and species
-    SPECIES.map(s => {
-      const species_mean = d3.mean(DATA, d => d[s]);
-      group.categories.map(c => {
-        c[s] = d3.mean(
-          grouped_data.get(c.name),
-          r => r[s]
-        ) - species_mean;
-        means.push(c[s]);
-        c[`${s}_sample_size`] = grouped_data.get(c.name).length;
+    if (REFERENCE_MEAN == 'species mean') {
+      SPECIES.map(s => {
+        const species_mean = d3.mean(DATA, d => d[s]);
+        group.categories.map(c => {
+          c[s] = d3.mean(
+            grouped_data.get(c.name),
+            r => r[s]
+          ) - species_mean;
+          means.push(c[s]);
+          c[`${s}_sample_size`] = grouped_data.get(c.name).length;
+        });
       });
-    });
+    } else if (REFERENCE_MEAN == 'group mean') {
+      group.categories.map(c => {
+        const group = grouped_data.get(c.name);
+        const group_mean = d3.mean(
+          SPECIES.flatMap(s => group.map(g => g[s]))
+        );
+        SPECIES.map(s => {
+          c[s] = d3.mean(group, r => r[s]) - group_mean;
+          means.push(c[s]);
+          c[`${s}_sample_size`] = group.length;
+        });
+      });
+    }
+
 
     // calculate value min and range across whole heatmap
     const min_mean = d3.min(means);
