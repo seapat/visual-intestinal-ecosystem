@@ -78,6 +78,7 @@ function generate_tile_rings(categories) {
 
 // unified group preprocessing
 function preprocess_groups(group_names) {
+  // get an array of objects containing group name and possible values = categories
   const groups = group_names.map(by => make_group(by));
 
   // manually order some categories - HACKY!
@@ -87,11 +88,20 @@ function preprocess_groups(group_names) {
     ];
   }
 
+  // pre-calculate heatmap tile values for each grouping
   groups.map(group => {
+    // generate d3.arc() generators for tiles of each category
     generate_tile_rings(group.categories);
-    // calculate normalized heatmap values
+
+    // ## calculate normalized heatmap values
+
+    // mean differences across graph
     const means = [];
+
+    // create arrays with data for each category
     const grouped_data = d3.group(DATA, d => d[group.name]);
+
+    // calculate mean differences per group and species
     SPECIES.map(s => {
       const species_mean = d3.mean(DATA, d => d[s]);
       group.categories.map(c => {
@@ -103,13 +113,20 @@ function preprocess_groups(group_names) {
         c[`${s}_sample_size`] = grouped_data.get(c.name).length;
       });
     });
+
+    // calculate value min and range across whole heatmap
     const min_mean = d3.min(means);
     const mean_range = d3.max(means) - min_mean;
+
+    // normalize calculated mean differences
     SPECIES.map(s => {
       group.categories.map(c => {
         c[s] = (c[s] - min_mean)/mean_range;
       })
     });
+
+    // since we scaled from 0 to 1, but we have diverging values, it is good to
+    // know where the 0 is (because with normalization, it does not have to be 0,5)
     group.scaled_zero = (0 - min_mean)/mean_range;
   });
   return groups;
@@ -193,6 +210,8 @@ function paint_group(group) {
   bacteria_angles.map(d => {
     // paths come first: important for css styling
     const piece = svg.append('g');
+
+    // paint heatmap tiles for species (d.data)
     group.categories.map(cat => {
       const sample_size = cat[`${d.data}_sample_size`];
       piece.append('path')
@@ -203,6 +222,7 @@ function paint_group(group) {
          .text(`${cat.name} (${sample_size} Samples)`);
     });
 
+    // paint legend for species (d.data)
     piece.append('text')
        .attr('class', 'species_label')
        .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d.startAngle) - 90})`)
