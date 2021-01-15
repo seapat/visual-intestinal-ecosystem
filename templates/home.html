@@ -1,7 +1,30 @@
 <!--Sean Klein 5575709, Florian Kellner 4090126-->
 
 {% extends "base.html" %}
+{% block content %}
 
+<div id="content">
+<!-- attribute selections -->
+<h2>
+    X-Axis:
+    <select id="x_axis"></select>
+    Colors:
+    <select id="colors"></select>
+</h2>
+</div>
+
+<!-- draw the plot -->
+<div id="stacked_bar"></div>
+
+<!--data from server-->
+<script type="text/javascript" >
+    dataset = {{ jsonTable | safe }};
+</script>
+
+<!-- load visualisation-->
+<script src="{{ url_for('static', filename='stackedBar.js') }}"></script>
+
+{% endblock %}
 {% block extrastyles %}
 <style>
   .home {

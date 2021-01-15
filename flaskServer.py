@@ -65,8 +65,6 @@ def upload_files():
 
     return result
 
-
-
 ##############
 # Functions  #
 ##############
