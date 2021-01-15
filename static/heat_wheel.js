@@ -57,11 +57,11 @@ function generate_groups(data, field, amount) {
   const max = d3.max(data, d => d[field]);
   const ticks = d3.ticks(min, max, amount);
   function get_group(f) {
-    if (f < ticks[0]) return `${min}-${ticks[0]}`;
+    if (f < ticks[0]) return `0-${ticks[0]}`; //`${min}-${ticks[0]}`;
     for(let i = 1; i < ticks.length; i++) {
       if (f < ticks[i]) return `${ticks[i-1]}-${ticks[i]}`;
     }
-    return `${ticks[ticks.length - 1]}-${max}`;
+    return `${ticks[ticks.length - 1]}+`; //`${ticks[ticks.length - 1]}-${max}`;
   }
   data.map(d => d[`${field}_group`] = get_group(d[field]));
 }
