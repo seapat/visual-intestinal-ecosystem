@@ -8,7 +8,7 @@ import numpy as np
 import json
 from werkzeug.utils import secure_filename
 
-UPLOAD_FOLDER = '/UploadFiles'   # path to directory in which uploaded files will be saved 
+UPLOAD_FOLDER = '/UploadFiles'   # path to directory in which uploaded files will be saved
 allowed_extensions = {'txt', 'csv', 'tsv'}
 
 app = Flask(__name__)
@@ -61,8 +61,8 @@ def upload_files():
 
         metafile.save(os.path.join("UploadFiles", "meta.csv"))
         bacteriafile.save(os.path.join("UploadFiles", "bact.csv"))
-                      
-        return home()       
+
+        return home()
 
     else:
         result = request.args.get['meta']
@@ -103,15 +103,8 @@ def combine_tsv(metadata, bacteria):
     # the paper says they took the first sample if several were available
     # (see Methods -> Sample collection),
     # so we should probably do the same:
-    subject_times = metadata[["SubjectID", "Time"]].groupby("SubjectID").min()
-    # pd.merge removes indexes if they are not used for the join, so this step
-    # needs to take place when we do not need the SampleIDs anymore.
-    all_data = pd.merge(
-        left  = subject_times,
-        right = all_data,
-        how   ='inner',
-        on    = ["SubjectID", "Time"]
-    )
+    # get only first sample of every subject
+    all_data = all_data.loc[all_data.groupby("SubjectID")["Time"].idxmin()]
 
     all_data = all_data.to_json(orient="records")  # convert to json format
 
@@ -132,11 +125,11 @@ def get_metadata(data_meta = "static/ecosystem_Metadata.tsv"):
     metadata = metadata.loc[metadata.groupby("SubjectID")["Time"].idxmin()]
     # drop unnecessary columns
     metadata = metadata.drop(['ProjectID', 'Time', 'SubjectID'], axis=1)
-    
+
     # create bins for age and diversity
     age_bins = pd.cut(metadata['Age'],bins=np.arange(0,101,20), labels=["<21", "21-40", "41-60", "61-80", ">80"])
     diversity_bins = pd.cut(metadata['Diversity'],bins=np.linspace(metadata["Diversity"].min(), metadata["Diversity"].max(), 6), labels=["very low", "low", "medium", "high", "very high"], include_lowest=True)
-    
+
     def count_occurences(c):
         x = metadata[c]
         if x.name == "Age":
@@ -152,7 +145,7 @@ def get_metadata(data_meta = "static/ecosystem_Metadata.tsv"):
     return {c: json.loads(count_occurences(c).to_json(orient="records")) for c in metadata.columns}
 
 
-    
+
 def visualizeData():
     '''
     data_meta = "static/ecosystem_Metadata.tsv"
@@ -161,7 +154,7 @@ def visualizeData():
     import pandas as pd
     metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
     bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
-   
+
     return combine_tsv(metadata, bacteria)
     '''
     if os.path.isfile("UploadFiles/meta.csv") and os.path.isfile("UploadFiles/bact.csv"):
@@ -175,7 +168,7 @@ def visualizeData():
         return combine_tsv(metadata, bacteria)
 
     else:
-        
+
         data_meta = "static/ecosystem_Metadata.tsv"
         data_bacteria = "static/ecosystem_HITChip.tsv"
 
