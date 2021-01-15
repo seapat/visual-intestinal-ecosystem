@@ -117,7 +117,9 @@ function preprocess_groups(group_names) {
 
     // create arrays with data for each category
     const grouped_data = d3.group(DATA, d => d[group.name]);
-
+    group.categories.map(c =>
+      c.sample_size = grouped_data.get(c.name).length
+    );
 
     // calculate mean differences per group and species
     if (REFERENCE_MEAN == 'species mean') {
@@ -129,7 +131,6 @@ function preprocess_groups(group_names) {
             r => r[s]
           ) - species_mean;
           means.push(c[s]);
-          c[`${s}_sample_size`] = grouped_data.get(c.name).length;
         });
       });
     } else if (REFERENCE_MEAN == 'group mean') {
@@ -141,7 +142,6 @@ function preprocess_groups(group_names) {
         SPECIES.map(s => {
           c[s] = d3.mean(group, r => r[s]) - group_mean;
           means.push(c[s]);
-          c[`${s}_sample_size`] = group.length;
         });
       });
     }
@@ -246,13 +246,12 @@ function paint_group(group) {
 
     // paint heatmap tiles for species (d.data)
     group.categories.map(cat => {
-      const sample_size = cat[`${d.data}_sample_size`];
       piece.append('path')
          .attr('fill', d3.interpolateViridis(cat[d.data]))
          .attr('d', cat.ring(d))
          .attr('class', 'heatmap_tile')
          .append('title')
-         .text(`${cat.name} (${sample_size} Samples)`);
+         .text(`${cat.name} (${cat.sample_size} Samples)`);
     });
 
     // paint legend for species (d.data)
