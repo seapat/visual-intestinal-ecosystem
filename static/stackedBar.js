@@ -23,11 +23,11 @@ function generate_options(data, field, amount) {
     const max = d3.max(data, d => d[field]);
     const ticks = d3.ticks(min, max, amount);
     function get_group(f) {
-      if (f < ticks[0]) return `0-${ticks[0]}`; //`${min}-${ticks[0]}`;
+      if (f < ticks[0]) return `${min}-${ticks[0]}`;
       for(let i = 1; i < ticks.length; i++) {
         if (f < ticks[i]) return `${ticks[i-1]}-${ticks[i]}`;
       }
-      return `${ticks[ticks.length - 1]}+`; //`${ticks[ticks.length - 1]}-${max}`;
+      return `${ticks[ticks.length - 1]}-${max}`;
     }
     data.map(d => d[`${field}_group`] = get_group(d[field]));
   }
@@ -36,6 +36,7 @@ function generate_options(data, field, amount) {
 generate_options(dataset, 'Age', 4);
 generate_options(dataset, 'Diversity', 4);
 console.log(dataset);
+
 
 // INPUT Handling //
 
@@ -68,29 +69,51 @@ const content = d3.select('#content');
 content.on('change', function(event) {
     if (event.target.id == "x_axis") {
         xAttr = event.target.value
-    }
+    } 
     else if (event.target.id == "colors"){
         colorAttr = event.target.value
     }
     drawGraph(xAttr, colorAttr)
 })
 
+
+
+// sorting of objects based on the passd attribute, uses array-inidces for custom sorting.
+function customSort(data, attribute) {
+
+    let KeyOrder = [
+        'underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese', 
+        'r', 'o', 'p',
+        'Unknown', null, NaN] // put bad values at the end
+
+
+    //check if column of first object, holds true for all objects in theory since null-values are handeled
+    if (attribute in data[0]) { 
+
+        //uses the index 
+        return data.sort( (a, b) => KeyOrder.indexOf(a[attribute]) - KeyOrder.indexOf(b[attribute]));
+    }
+    else {
+        return d3.sort(data, (a, b) => d3.ascending(a[attribute], b[attribute]))
+    }
+}
+
+
 function drawGraph(xAttr, colorAttr) {
 
+    dataset = customSort(dataset, xAttr)
+
     svg.html('');
-
-
-
 
     // VARIABLES //
 
     // create map with nested maps
     // keys: X-Axis, values: maps of stacks: key-value
-    let countMap = d3.rollup(dataset,
-        v => v.length,
-        key => (key[xAttr] == null) ? "Unknown" : key[xAttr],
+    let countMap = d3.rollup(dataset, 
+        v => v.length, 
+        key => (key[xAttr] == null) ? "Unknown" : key[xAttr], 
         key => (key[colorAttr] == null) ? "Unknown" : key[colorAttr]);
-
+        
     console.log(countMap)
 
     let colorKeys = new Set()
@@ -110,7 +133,7 @@ function drawGraph(xAttr, colorAttr) {
     countArray.forEach(function(d) {
     var obj = { Group: d.key } //old key -> value of 'Group'
         d.value.forEach(function(value, key) { //append key value pairs that were previously inside nested maps
-            obj[key] = value;
+            obj[key] = value; 
         });
     flatCountArray.push(obj);
     });
@@ -122,12 +145,12 @@ function drawGraph(xAttr, colorAttr) {
     let stack = d3.stack()
         .keys(colorKeys)
         .value(function(d, key) {
-            if (d[key] == null){ //if one group has no values for a bar color, e.g. no "unkowns"
-                return 0 //return 0 instead of NaN to avoid parsing warnings (no stack is created either way)
+            if (d[key] == null){ // if one group has no values for a bar color, e.g. no "unkowns"
+                return 0 // return 0 instead of NaN to avoid parsing warnings (no stack is created either way)
             }
-            else {
+            else { 
                 return d[key]; //key is each type of occurence of bar-attribute
-            }
+            } 
         })
         .order(d3.stackOrderNone)
         .offset(d3.stackOffsetNone);
@@ -159,10 +182,10 @@ function drawGraph(xAttr, colorAttr) {
             //.style("font-size", 12);
 
     // X AXIS //
-
+        
         // x scale
         let xScale = d3.scaleBand()
-            .domain(Array.from(countMap.keys()))
+            .domain(Array.from(countMap.keys())) 
             .range([0, width])
             .padding(0.5);
 
@@ -185,27 +208,28 @@ function drawGraph(xAttr, colorAttr) {
         // color palette = one color per subgroup
         let color = d3.scaleOrdinal()
             .domain(colorKeys //keys from first entry in Counts
-                )
+                ) 
             .range(d3.schemeTableau10) //for reference: https://github.com/d3/d3-scale-chromatic/tree/v2.0.0#categorical
-
+        
         // add stacks to graph
         svg.append('g')
             .selectAll("g")
             .data(stack(flatCountArray))
-
+            
             .enter().append("g")
                 .attr("fill", function(d) { return color(d.key); })
                 .selectAll("rect")
                 .data(function(d) { return d; })
-                .enter().append("rect")
+                .enter()
+                .append("rect")
                     // .attr("class",  function(d) {  //map 'svg elements' to classes
                     //     return "bin " + d[0];}) // returns names of X attribute
-                    .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis
+                    .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis 
                     .attr("y", function (d) { return yScale(d[1]); } ) // d[1] denotes end postion of stack
-
+                    
                     .attr("width", xScale.bandwidth())
                     .on("mousemove",(event,d) => {whileMouseOver(event,d)})
-                    .on("mouseout",(event,d) => {whileMouseOut(event,d)})
+                    .on("mouseout",(event,d)  => {whileMouseOut(event,d)})
                     .style("opacity", "0.8")
                     .attr("stroke", "grey")
 
@@ -213,8 +237,7 @@ function drawGraph(xAttr, colorAttr) {
                         .transition()
                         .duration(400)
                         .ease(d3.easeLinear)
-
-                    .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
+                        .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
 
     // TOOLTIP //
 
@@ -226,7 +249,7 @@ function drawGraph(xAttr, colorAttr) {
         .attr('class', 'tooltip')
         .style("visibility","hidden");
 
-    function whileMouseOver(event,d){
+    function whileMouseOver(event,d){ 
         // console.log(d); // range of current stack
         // console.log(d.data); //data of whole bar as object
         // console.log(d3.pointer(event)); //coords of mous pointer
@@ -234,6 +257,7 @@ function drawGraph(xAttr, colorAttr) {
         // console.log(d3.select(this))  // returns some ??? object
         // console.log(d3.select(event.currentTarget)); // same as select.this()
         // console.log(d3.select(event.currentTarget).node()); //returns svg of stack
+        // console.log(event.target.__data)
 
     tooltip
         .style("visibility","visible")
@@ -256,25 +280,25 @@ function drawGraph(xAttr, colorAttr) {
 
     //http://bl.ocks.org/gencay/4629518
     let legend = svg.selectAll("legend.colors")
-    .data(Array.from(colorKeys).reverse()) //reverse(): consistent order of colors in legend and bars
-    .enter()
-    .append("g")
-    .attr("class", "legend")
-    .attr("transform", function(d, i) { return "translate(0," + (15 + i * 25) + ")"; });
+        .data(Array.from(colorKeys).reverse()) //reverse(): consistent order of colors in legend and bars
+        .enter()
+        .append("g")
+        .attr("class", "legend")
+        .attr("transform", function(d, i) { return "translate(0," + (15 + i * 25) + ")"; });
 
     legend.append("rect")
-    .attr("x", width)
-    .attr("width", 20)
-    .attr("height", 20)
-    // .attr("stroke", "grey")
-    .style("fill", color);
+        .attr("x", width)
+        .attr("width", 20)
+        .attr("height", 20)
+        // .attr("stroke", "grey")
+        .style("fill", color);
 
     legend.append("text")
-    .attr("x", width - 5 )
-    .attr("y", 10)
-    .attr("dy", ".35em")
-    .style("text-anchor", "end")
-    .text(function(d) { return d; });
+        .attr("x", width - 5 )
+        .attr("y", 10)
+        .attr("dy", ".35em")
+        .style("text-anchor", "end")
+        .text(function(d) { return d; });
 
     svg.selectAll("legend.title")
         .data([0]) //empty data to draw only once
