@@ -29,6 +29,7 @@ def home():
 
 @app.route('/metadata' , methods=["POST", "GET"])
 def metadata():
+    (data, species_list) = visualizeData()
     return render_template('metadata.html', data=get_metadata_all())
 
 @app.route('/analysis' , methods=["POST", "GET"])
@@ -54,6 +55,10 @@ def upload_files():
 
         filename_meta = secure_filename(metafile.filename)
         filename_bacteria = secure_filename(bacteriafile.filename)
+
+        if metafile == "":
+            if bacteriafile == "":
+                return home()
 
         metafile.save(os.path.join("UploadFiles", "meta.csv"))
         bacteriafile.save(os.path.join("UploadFiles", "bact.csv"))
@@ -155,11 +160,26 @@ def visualizeData():
 
         data_meta = "UploadFiles/meta.csv"
         data_bacteria = "UploadFiles/bact.csv"
+        
+        # we need a try because uploadfiles creates empty files if no file is added but upload button is pressed
+        try:
 
-        metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
-        bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
+            metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
+            bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
 
-        return combine_tsv(metadata, bacteria)
+            return combine_tsv(metadata, bacteria)
+
+        except:
+            
+
+            data_meta = "static/ecosystem_Metadata.tsv"
+            data_bacteria = "static/ecosystem_HITChip.tsv"
+
+            metadata = pd.read_csv(data_meta, delimiter="\t", index_col="SampleID")
+            bacteria = pd.read_csv(data_bacteria, delimiter="\t", index_col="SampleID")
+
+            return combine_tsv(metadata, bacteria)
+
 
     else:
 
