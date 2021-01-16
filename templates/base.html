@@ -112,7 +112,7 @@
 
                     } else {
 
-                        console.log("The file format is good.")
+                        console.log("The file format is not good.")
                         alert("The file format for metadata is not supported. Please choose a different file.")
                         return;
 
@@ -139,7 +139,7 @@
                     console.log(evt.target.result);
                     let data = evt.target.result;
 
-                    if(data.indexOf("SampleID" == 0)){
+                    if(data.indexOf("SampleID") == 0){
 
                         console.log("The file format is good.")
                         infoMeta.textContent = "Ecosystem: " + inputName;
@@ -147,7 +147,7 @@
 
                     } else {
 
-                        console.log("The file format is good.")
+                        console.log("The file format is not good.")
                         alert("The file format for ecosystem is not supported. Please choose a different file.")
                         return;
 
