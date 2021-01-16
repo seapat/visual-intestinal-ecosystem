@@ -47,10 +47,10 @@
                 <input id="bacteria" type="file" name="bacteria" onclick="displayBactName()"/>
                 </label>
                 <p id="metaUpload">
-                    Metadata:
+                    
                 </p>
                 <p id="bactUpload">
-                    Ecosystem:
+                    
                 </p>
           
                 <button type="submit" class="btn">Upload</button>
@@ -142,7 +142,7 @@
                     if(data.indexOf("SampleID") == 0){
 
                         console.log("The file format is good.")
-                        infoMeta.textContent = "Ecosystem: " + inputName;
+                        infoBact.textContent = "Ecosystem: " + inputName;
                         return inputFile;
 
                     } else {
