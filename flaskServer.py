@@ -29,7 +29,6 @@ def home():
 
 @app.route('/metadata' , methods=["POST", "GET"])
 def metadata():
-    (data, species_list) = visualizeData()
     return render_template('metadata.html', data=get_metadata_all())
 
 @app.route('/analysis' , methods=["POST", "GET"])
