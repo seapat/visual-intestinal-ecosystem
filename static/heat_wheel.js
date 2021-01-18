@@ -26,10 +26,10 @@ const GROUPS = preprocess_groups(
 // reference mean
 const REFERENCE_MEAN_OPTIONS = [
   {
-    name:'species mean',
+    name:'species mean (comp. to group avg.)',
     tileset:'species_difference'
   }, {
-    name: 'group mean',
+    name: 'group mean (comp. to species avg.)',
     tileset: 'group_difference'
   }
 ];
@@ -127,7 +127,7 @@ function preprocess_groups(group_names) {
     // generate d3.arc() generators for tiles of each category
     generate_tile_rings(group.categories);
 
-    // ## calculate normalized heatmap values
+    // #### calculate normalized heatmap values
 
     // create arrays with data for each category
     const grouped_data = d3.group(DATA, d => d[group.name]);
@@ -137,6 +137,7 @@ function preprocess_groups(group_names) {
 
     // calculate mean differences per group and species
 
+    // ## difference from species mean compared to group average
     // mean differences across graph
     const species_differences = [];
 
@@ -151,10 +152,21 @@ function preprocess_groups(group_names) {
           grouped_data.get(c.name),
           r => r[s]
         ) - species_mean;
+        // species_differences.push(c.species_difference[s]);
+      });
+    });
+    // difference to group average
+    group.categories.map(c => {
+      const group_mean = d3.mean(
+        SPECIES.map(s => c.species_difference[s])
+      );
+      SPECIES.map(s => {
+        c.species_difference[s] = c.species_difference[s] - group_mean;
         species_differences.push(c.species_difference[s]);
       });
     });
 
+    // ## difference from group mean compared to species average
     // mean differences across graph
     const group_differences = [];
 
@@ -169,6 +181,14 @@ function preprocess_groups(group_names) {
       );
       SPECIES.map(s => {
         c.group_difference[s] = d3.mean(group, r => r[s]) - group_mean;
+        // group_differences.push(c.group_difference[s]);
+      });
+    });
+    // difference to species average
+    SPECIES.map(s => {
+      const species_mean = d3.mean(group.categories.map(c => c.group_difference[s]));
+      group.categories.map(c => {
+        c.group_difference[s] = c.group_difference[s] - species_mean;
         group_differences.push(c.group_difference[s]);
       });
     });
