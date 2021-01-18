@@ -98,11 +98,14 @@ function preprocess_groups(group_names) {
   // get an array of objects containing group name and possible values = categories
   const groups = group_names.map(by => make_group(by));
 
-  // manually order some categories - HACKY!
+  // manually order bmi group - unknown bmi groups get sorted first
   if (group_names.includes('BMI_group')) {
-    groups.filter(g => g.name == 'BMI_group')[0].categories = [
+    const bmi_group_order = [
       'underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese'
     ];
+    groups.filter(g => g.name == 'BMI_group')[0].categories.sort((a, b) => {
+      return bmi_group_order.findIndex(x => x == a) - bmi_group_order.findIndex(y => y == b);
+    });
   }
 
   // pre-calculate heatmap tile values for each grouping
