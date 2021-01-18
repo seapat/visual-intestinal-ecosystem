@@ -89,7 +89,7 @@
                     
                     var meta_cols = ["SampleID", "Age", "Sex", "Nationality", "DNA_extraction_method", "ProjectID", "Diversity", "BMI_group", "SubjectID", "Time"]
                     console.log(evt.target.result);
-                    let data = evt.target.result;
+                    let data = d3.dsvFormat('\t').parse(evt.target.result).columns;
                     //data = evt.target.result;
                     //console.log(typeof data)
                     let index = -1;  //initialize index with -1 so that 0 (the first index) is larger
@@ -140,7 +140,7 @@
                 reader.onload = function (evt) {
 
                     console.log(evt.target.result);
-                    let data = evt.target.result;
+                    let data = d3.dsvFormat('\t').parse(evt.target.result).columns;
 
                     if(data.indexOf("SampleID") == 0){
 
