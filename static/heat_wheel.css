@@ -16,6 +16,19 @@
   stroke: black;
 }
 
+/*
 .heatmap_tile:hover ~ .species_label {
   font-weight: bold;
+}
+*/
+.species_label:hover ~ .heatmap_tile {
+  stroke: black;
+}
+
+.species_group:hover > .species_label {
+  font-weight: bold;
+}
+
+#center_label {
+  text-anchor: middle;
 }

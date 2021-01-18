@@ -247,6 +247,11 @@ function paint_group(group, tileset) {
   // clear graph
   svg.html('');
 
+  // text field showing the name of currently hovered species
+  const center_label = svg.append('text')
+    .attr('id', 'center_label')
+    .text('');
+
   // paint ring legend
   group.categories.map(c => {
     svg.append('line')
@@ -293,8 +298,19 @@ function paint_group(group, tileset) {
   // paint graph
   bacteria_angles.map(d => {
     const species = d.data;
-    // paths come first: important for css styling
-    const piece = svg.append('g');
+    const piece = svg.append('g')
+      .attr('class', 'species_group')
+      .on('mouseenter', () => center_label.text(species))
+      .on('mouseleave', () => center_label.text(''));
+
+
+    // legend comes first: important for css styling
+
+    // paint legend for species
+    piece.append('text')
+       .attr('class', 'species_label')
+       .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90})`)
+       .text(species);
 
     // paint heatmap tiles for species
     group.categories.map(cat => {
@@ -305,12 +321,6 @@ function paint_group(group, tileset) {
          .append('title')
          .text(`${cat.name} (${cat.sample_size} Samples)`);
     });
-
-    // paint legend for species
-    piece.append('text')
-       .attr('class', 'species_label')
-       .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90})`)
-       .text(species);
   });
 
 }
