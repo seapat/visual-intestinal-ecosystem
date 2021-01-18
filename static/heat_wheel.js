@@ -260,7 +260,7 @@ function paint_group(group) {
     // paint legend for species (d.data)
     piece.append('text')
        .attr('class', 'species_label')
-       .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d.startAngle) - 90})`)
+       .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90})`)
        .text(d.data);
   });
 
