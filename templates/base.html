@@ -73,10 +73,12 @@
         // function that checks the format of an input file
         function displayMetaName(event){
 
+            if (!event) return;
+
             var input = event.srcElement;
             var inputName = input.files[0].name;
             var inputFile = input.files[0];
-            
+
             // check if input file is present
             if(inputFile){
 
@@ -124,6 +126,7 @@
         }
 
         function displayBactName(event){
+            if (!event) return;
 
             var input = event.srcElement;
             var inputName = input.files[0].name;
