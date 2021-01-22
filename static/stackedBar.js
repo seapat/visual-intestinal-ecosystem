@@ -56,22 +56,22 @@ colorOption.selectAll("option")
     .data(options)
     .enter()
     .append("option")
-    .html(function(d) {return d;})
+    .html(function(d) {return d.replace("_", " ");})
 
 const xOption = d3.select('#x_axis');
 xOption.selectAll("option")
     .data(options)
     .enter()
     .append("option")
-    .html(function(d) {return d;})
+    .html(function(d) {return d.replace("_", " ");})
 
 const content = d3.select('#content');
 content.on('change', function(event) {
     if (event.target.id == "x_axis") {
-        xAttr = event.target.value
+        xAttr = event.target.value.replace(" ", "_")
     } 
     else if (event.target.id == "colors"){
-        colorAttr = event.target.value
+        colorAttr = event.target.value.replace(" ", "_")
     }
     drawGraph(xAttr, colorAttr)
 })
@@ -85,7 +85,6 @@ function customSort(data, attribute) {
         'underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese', 
         'r', 'o', 'p',
         'Unknown', null, NaN] // put bad values at the end
-
 
     //check if column of first object, holds true for all objects in theory since null-values are handeled
     if (attribute in data[0]) { 
@@ -207,9 +206,18 @@ function drawGraph(xAttr, colorAttr) {
 
         // color palette = one color per subgroup
         let color = d3.scaleOrdinal()
-            .domain(colorKeys //keys from first entry in Counts
-                ) 
+            //.domain(colorKeys ) //keys from first entry in Counts
             .range(d3.schemeTableau10) //for reference: https://github.com/d3/d3-scale-chromatic/tree/v2.0.0#categorical
+            // .range(function(d) {
+            //     if (xAttr == colorAttr){
+            //         console.log("reached")
+            //         return ["blue"]
+            //     }
+            //     else {
+            //         return Array.from(d3.schemeTableau10)
+            //     }
+            //  }
+            // ) 
         
         // add stacks to graph
         svg.append('g')
@@ -305,7 +313,7 @@ function drawGraph(xAttr, colorAttr) {
         .enter()
         .append("text")
         .attr("class", "title")
-        .text(colorAttr)
+        .text(colorAttr.replace("_", " "))
         .attr("x", width + 20)
         .attr("y", 0)
         .style("text-anchor", "end")
