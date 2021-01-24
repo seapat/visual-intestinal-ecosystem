@@ -1,4 +1,0 @@
-SampleID	Age	Sex	Nationality	DNA_extraction_method	ProjectID	Diversity	BMI_group	SubjectID	Time
-Sample-1	28	male	US	NA	1	5.76	severeobese	1	0
-Sample-2	24	female	US	NA	1	6.06	obese	2	0
-Sample-3	52	male	US	NA	1	5.5	lean	3	0
