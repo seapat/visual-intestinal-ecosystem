@@ -29,6 +29,27 @@
   font-weight: bold;
 }
 
+
 #center_label {
   text-anchor: middle;
 }
+
+.histbg {
+    fill: white;
+}
+
+.histsbg {
+    background: lightgray;
+    visibility: hidden;
+}
+
+#histograms {
+    float: left;
+    
+}
+
+/*
+.bar {
+    fill: red;
+}
+*/
