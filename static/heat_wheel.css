@@ -39,17 +39,22 @@
 }
 
 .histsbg {
-    background: lightgray;
+    background: whitesmoke;
     visibility: hidden;
+    border-style:solid;
 }
 
 #histograms {
-    float: left;
-    
+    float: right;
+}
+
+.axislabel, .histlabel {
+   font-family: sans-serif;
+   font-size: 12; 
 }
 
 /*
 .bar {
-    fill: red;
+    stroke: black;
 }
 */

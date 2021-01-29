@@ -57,11 +57,7 @@ grouping_choice.on('change', event => {
   GROUP = GROUPS.filter(g => g.name == event.target.value)[0];
   paint_group(GROUP, TILESET);
   HIST = drawHist();
-  if (SELECTED) {
-        new_sel = d3.select('#' + SELECTED.id)._groups[0][0];
-        species = d3.select(new_sel).select(".species_label").text()
-        onClick(new_sel, species);
-    }
+  if (SELECTED) click_helper(SELECTED.id);
 });
 
 // #### dropdown for choosing reference mean
@@ -74,6 +70,7 @@ REFERENCE_MEAN_OPTIONS.map(o =>
 reference_mean_choice.on('change', event => {
   TILESET = event.target.value;
   paint_group(GROUP, TILESET);
+  if (SELECTED) click_helper(SELECTED.id);
 });
 
 
@@ -259,7 +256,6 @@ let svg_hist_width = 2 * (HIST_X + 1.75*HIST_MAR_X)
 const svg_hist = d3.select('#histograms')
   .attr('width', svg_hist_width).attr("class", "histsbg");
 svg_hist.append("text").style("text-anchor", "middle").attr('transform', `translate(${svg_hist_width/2},${30})`).text("Distribution of original data");
-console.log(svg_hist);
 var scaleX = d3.scaleLinear()
             .domain([0, 1])
             .range([0, HIST_X]);
@@ -273,6 +269,8 @@ function drawHist() {
     cat_count = GROUP.categories.length
     reversed_data = [...GROUP.categories].reverse() // reverse data to match order in heatwheel
     height = HIST_MAR_Y + (cat_count/2).toFixed()*(HIST_Y + HIST_MAR_Y);
+    maxY = d3.max(GROUP.categories, c => c.sample_size);
+    scaleY.domain([0, maxY + 25]);
     let hist = svg_hist.attr('height', height).selectAll(".hist_group")
     .data(reversed_data)
     hist.exit().remove();
@@ -280,17 +278,14 @@ function drawHist() {
         .append("g").attr("class", "hist_group")
     enter.append("rect").attr("class", "histbg").attr("width", HIST_X).attr("height", HIST_Y)
     enter.append("text").attr("class", "histlabel").style("text-anchor", "middle").attr('alignment-baseline', 'bottom').attr('transform', `translate(${HIST_X/2},${-5})`);
-    enter.append("text").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${-40},${HIST_Y/2})rotate(-90)`).text("Number of subjects")
-    enter.append("text").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${HIST_X/2},${HIST_Y+30})`).text("Abundance")
-    maxY = d3.max(GROUP.categories.map(c => c.sample_size));
-    scaleY.domain([0, maxY + 25]);
-    let yAxis = enter.append("g")
-        .call(d3.axisLeft(scaleY));
-    let xAxis = enter.append("g").attr('transform', `translate(${0},${HIST_Y})`)
-        .call(d3.axisBottom(scaleX));
+    enter.append("text").attr("class", "axislabel").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${-40},${HIST_Y/2})rotate(-90)`).text("Number of subjects")
+    enter.append("text").attr("class", "axislabel").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${HIST_X/2},${HIST_Y+30})`).text("Abundance")
+    enter.append("g").attr("class", "yaxis").call(d3.axisLeft(scaleY));
+    enter.append("g").attr("class", "xaxis").attr('transform', `translate(${0},${HIST_Y})`).call(d3.axisBottom(scaleX));
     hist = hist.merge(enter)
-    .attr('transform', function(d, i) {return `translate(${HIST_MAR_X + (i%2)*(1.5*HIST_MAR_X + HIST_X)},${HIST_MAR_Y + (Math.trunc(i/2))*(HIST_Y + HIST_MAR_Y)})`})
+        .attr('transform', function(d, i) {return `translate(${HIST_MAR_X + (i%2)*(1.5*HIST_MAR_X + HIST_X)},${HIST_MAR_Y + (Math.trunc(i/2))*(HIST_Y + HIST_MAR_Y)})`})
     hist.select(".histlabel").text(function(d){return d.name});
+    hist.select(".yaxis").call(d3.axisLeft(scaleY));
     return hist;
 }
   
@@ -326,6 +321,13 @@ function onClick(t, species) {
         .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
         .attr("height", d => HIST_Y - scaleY(d.length))
       };
+
+// helper function to select without clicking on tile
+function click_helper(id) {
+    new_sel = d3.select('#' + id)._groups[0][0];
+    species = d3.select(new_sel).select(".species_label").text()
+    onClick(new_sel, species);
+}
 
 // ##### graph creator ####
 function paint_group(group, tileset) {
@@ -412,13 +414,10 @@ function paint_group(group, tileset) {
          .text(`${cat.name} (${cat.sample_size} Samples)`);
          
     });
-      
-    
-      
-
   });
-
 }
 
 // ##### create initial graph ####
 paint_group(GROUP, TILESET);
+click_helper('ID1');
+
