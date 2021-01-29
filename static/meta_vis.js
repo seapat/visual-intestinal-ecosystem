@@ -185,6 +185,8 @@ function update(variable1, variable2) {
         .attr("class", "group")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
         .merge(groups_data)
+//        .transition()
+//        .duration(1000)
         .attr("x", function(d) { return scaleX(d[0]); });
         groups_exit = groups_data.exit()
         .remove();
@@ -194,23 +196,25 @@ function update(variable1, variable2) {
         enter => enter.append("rect")
         .on("mouseover", mouseOver)
         .on("mouseout", mouseOut)
+//        .transition()
+//        .duration(1000)
         .attr("x", function(d) { return d3.select(this.parentNode).attr("x"); })
         .attr("y", function(d) { return scaleY(d[2]); })
         .attr("width", scaleX.bandwidth())
         .attr("height", function(d) {  return height - scaleY(d[2]-d[1]); })
-            .style("fill", function(d) { 
-//                console.log(d[0]);
-    return color(d[0]);
+        .style("fill", function(d) {
+            return color(d[0]);
     }),
         update => update.attr("x", function(d) { return d3.select(this.parentNode).attr("x"); })
         .on("mouseover", mouseOver)
         .on("mouseout", mouseOut)
+//        .transition()
+//        .duration(1000)
         .attr("y", function(d) { return scaleY(d[2]); })
         .attr("width", scaleX.bandwidth())
         .attr("height", function(d) { return height - scaleY(d[2]-d[1]); })
-            .style("fill",function(d) {
-//              console.log(d[0]);
-    return color(d[0]);
+        .style("fill",function(d) {
+            return color(d[0]);
     }),
         exit => exit.remove()
     );

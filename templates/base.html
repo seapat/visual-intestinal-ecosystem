@@ -39,13 +39,19 @@
         <form method=post action="getfile" class="form-container" enctype="multipart/form-data">
             
             <h1>Enter here your own Metadata and bacteria file TSVs:</h1>
-                <label for="meta" class="custom-file-upload"><b>Add Own Metadata</b>
-                <input id="meta" type="file" name="meta" />
+                <label id="meta_label" for="meta" class="custom-file-upload"><b>Add Own Metadata</b>
+                <input id="meta" type="file" name="meta" onclick="displayMetaName()"/>
                 </label>
 
-                <label for="bacteria" class="custom-file-upload"><b>Add Own Bacteria</b>
-                <input id="bacteria" type="file" name="bacteria" />
+                <label id="bacteria_label" for="bacteria" class="custom-file-upload"><b>Add Own Bacteria</b>
+                <input id="bacteria" type="file" name="bacteria" onclick="displayBactName()"/>
                 </label>
+                <p id="metaUpload">
+                    
+                </p>
+                <p id="bactUpload">
+                    
+                </p>
           
                 <button type="submit" class="btn">Upload</button>
                 <button type="button" class="btn cancel" onclick="closeForm()">Cancel</button>
@@ -53,8 +59,109 @@
         </form>
     </div>
 
-    
+   
     <script>
+        var meta = document.getElementById("meta");
+        var bact = document.getElementById("bacteria");
+
+        var infoMeta = document.getElementById( "metaUpload" );
+        var infoBact = document.getElementById( "bactUpload")
+
+        meta.addEventListener( 'change', displayMetaName );
+        bact.addEventListener( 'change', displayBactName );
+
+        // function that checks the format of an input file
+        function displayMetaName(event){
+
+            if (!event) return;
+
+            var input = event.srcElement;
+            var inputName = input.files[0].name;
+            var inputFile = input.files[0];
+
+            // check if input file is present
+            if(inputFile){
+
+                var reader = new FileReader();
+                reader.readAsText(inputFile, "UTF-8");
+                reader.onload = function (evt) {
+
+                    
+                    var meta_cols = ["SampleID", "Age", "Sex", "Nationality", "DNA_extraction_method", "ProjectID", "Diversity", "BMI_group", "SubjectID", "Time"]
+                    console.log(evt.target.result);
+                    let data = d3.dsvFormat('\t').parse(evt.target.result).columns;
+                    //data = evt.target.result;
+                    //console.log(typeof data)
+                    let index = -1;  //initialize index with -1 so that 0 (the first index) is larger
+                    let counter = 0
+                    //console.log(data[0])
+                    
+                    for(var d of meta_cols){
+                        
+                        if(data.includes(d) && data.indexOf(d) > index){
+                            console.log(d)
+                            console.log("True");
+                            counter++;
+                        }
+                        
+                    }
+
+                    if(counter == 10){
+
+                        console.log("The file format is good.")
+                        infoMeta.textContent = "Metadata: " + inputName;
+                        return inputFile;
+
+                    } else {
+
+                        console.log("The file format is not good.")
+                        alert("The file format for metadata is not supported. Please choose a different file.")
+                        return;
+
+                    }
+
+                }
+
+            }
+        }
+
+        function displayBactName(event){
+            if (!event) return;
+
+            var input = event.srcElement;
+            var inputName = input.files[0].name;
+
+            var inputFile = input.files[0];
+
+            if(inputFile){
+
+                var reader = new FileReader();
+                reader.readAsText(inputFile, "UTF-8");
+                reader.onload = function (evt) {
+
+                    console.log(evt.target.result);
+                    let data = d3.dsvFormat('\t').parse(evt.target.result).columns;
+
+                    if(data.indexOf("SampleID") == 0){
+
+                        console.log("The file format is good.")
+                        infoBact.textContent = "Ecosystem: " + inputName;
+                        return inputFile;
+
+                    } else {
+
+                        console.log("The file format is not good.")
+                        alert("The file format for ecosystem is not supported. Please choose a different file.")
+                        return;
+
+                    }
+
+                }
+
+
+            }
+        }   
+
         function openForm() {
             document.getElementById("myForm").style.display = "block";
         }
