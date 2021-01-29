@@ -56,22 +56,22 @@ colorOption.selectAll("option")
     .data(options)
     .enter()
     .append("option")
-    .html(function(d) {return d.replace("_", " ");})
+    .html(function(d) {return d.replace("_", " ").replace("_", " ");})
 
 const xOption = d3.select('#x_axis');
 xOption.selectAll("option")
     .data(options)
     .enter()
     .append("option")
-    .html(function(d) {return d.replace("_", " ");})
+    .html(function(d) {return d.replace("_", " ").replace("_", " ");})
 
 const content = d3.select('#content');
 content.on('change', function(event) {
     if (event.target.id == "x_axis") {
-        xAttr = event.target.value.replace(" ", "_")
+        xAttr = event.target.value.replace(" ", "_").replace(" ", "_")
     } 
     else if (event.target.id == "colors"){
-        colorAttr = event.target.value.replace(" ", "_")
+        colorAttr = event.target.value.replace(" ", "_").replace(" ", "_")
     }
     drawGraph(xAttr, colorAttr)
 })
