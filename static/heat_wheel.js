@@ -255,7 +255,7 @@ const outer_circle = d3.arc()
 let svg_hist_width = 2 * (HIST_X + 1.75*HIST_MAR_X)
 const svg_hist = d3.select('#histograms')
   .attr('width', svg_hist_width).attr("class", "histsbg");
-svg_hist.append("text").style("text-anchor", "middle").attr('transform', `translate(${svg_hist_width/2},${30})`).text("Distribution of original data");
+svg_hist.append("text").attr("id", "histtitle").style("text-anchor", "middle").attr('transform', `translate(${svg_hist_width/2},${30})`);
 var scaleX = d3.scaleLinear()
             .domain([0, 1])
             .range([0, HIST_X]);
@@ -298,6 +298,7 @@ function onClick(t, species) {
     d3.select(t).selectAll("path").style("stroke", "black");
     d3.select(t).selectAll("text").style("font-weight", "bold");
     svg_hist.style("visibility", "visible");
+    svg_hist.select("#histtitle").text(species);
     reversed_data = [...GROUP.categories].reverse()
     group_data = reversed_data.map(c => DATA.filter(d => d[GROUP.name] == c.name).map(d => d[species]));
     let create_hist = d3.histogram()
@@ -308,7 +309,8 @@ function onClick(t, species) {
         .selectAll(".bar")
         .data(function(d, i) { return create_hist(d); })
         bars.enter()
-        .append("rect").attr('class', 'bar').attr("fill", d => d3.interpolateViridis(d.x0))
+        .append("rect").attr('class', 'bar')
+//            .attr("fill", d => d3.interpolateViridis(d.x0))
         .attr("x", d => scaleX(d.x0) + 2)
         .attr("y", d => {return HIST_Y})
         .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
