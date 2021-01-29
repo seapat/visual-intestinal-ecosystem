@@ -11,6 +11,8 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- old version by Antonia
 <div>
 <h2><select name="variables" id="select_variable">
     </select><select name="variables2" id="select_variable2">
@@ -20,7 +22,33 @@
 </div>
 
 <script type="text/javascript" >
-    const data = {{ data | safe }};
+  const data = {{ data | safe }};
 </script>
 <script src="{{ url_for('static', filename='meta_vis.js') }}"></script>
+-->
+
+<div id="content">
+
+<h2>
+  X-Axis:
+  <select id="x_axis"></select>
+  Colors:
+  <select id="colors"></select>
+</h2>
+</div>
+
+
+<!-- draw the plot -->
+<div id="stacked_bar"></div>
+
+<!--data from server-->
+<script type="text/javascript" >
+  dataset = {{ jsonTable | safe }};
+</script>
+
+<!-- load visualisation-->
+<script src="{{ url_for('static', filename='stackedBar.js') }}"></script>
+
+
+
 {% endblock %}

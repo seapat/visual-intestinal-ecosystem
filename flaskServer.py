@@ -24,12 +24,12 @@ def index():
 
 @app.route('/home' , methods=["POST", "GET"])
 def home():
-    (data, species_list) = visualizeData()
-    return render_template('home.html', jsonTable = data, species = species_list)
+    return render_template('home.html')
 
 @app.route('/metadata' , methods=["POST", "GET"])
 def metadata():
-    return render_template('metadata.html', data=get_metadata_all())
+    (data, species_list) = visualizeData()
+    return render_template('metadata.html', jsonTable = data, species = species_list) #data=get_metadata_all()
 
 @app.route('/analysis' , methods=["POST", "GET"])
 def analysis():

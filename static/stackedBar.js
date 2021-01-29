@@ -4,7 +4,7 @@
 
 let margin = {top: 40, right: 30, bottom: 65, left: 50},
     width = 1400 - margin.left - margin.right,
-    height = 800 - margin.top - margin.bottom;
+    height = 750 - margin.top - margin.bottom;
 
 // create intial svg
 let svg = d3.select("#stacked_bar")
