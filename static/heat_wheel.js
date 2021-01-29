@@ -260,6 +260,7 @@ var scaleX = d3.scaleLinear()
             .domain([0, 1])
             .range([0, HIST_X]);
 var scaleY = d3.scaleLinear()
+            .domain([0, 100])
             .range([HIST_Y, 0]);
 let HIST = drawHist();
 
@@ -269,8 +270,6 @@ function drawHist() {
     cat_count = GROUP.categories.length
     reversed_data = [...GROUP.categories].reverse() // reverse data to match order in heatwheel
     height = HIST_MAR_Y + (cat_count/2).toFixed()*(HIST_Y + HIST_MAR_Y);
-    maxY = d3.max(GROUP.categories, c => c.sample_size);
-    scaleY.domain([0, maxY + 25]);
     let hist = svg_hist.attr('height', height).selectAll(".hist_group")
     .data(reversed_data)
     hist.exit().remove();
@@ -278,14 +277,13 @@ function drawHist() {
         .append("g").attr("class", "hist_group")
     enter.append("rect").attr("class", "histbg").attr("width", HIST_X).attr("height", HIST_Y)
     enter.append("text").attr("class", "histlabel").style("text-anchor", "middle").attr('alignment-baseline', 'bottom').attr('transform', `translate(${HIST_X/2},${-5})`);
-    enter.append("text").attr("class", "axislabel").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${-40},${HIST_Y/2})rotate(-90)`).text("Number of subjects")
+    enter.append("text").attr("class", "axislabel").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${-40},${HIST_Y/2})rotate(-90)`).text("Percentage of subjects")
     enter.append("text").attr("class", "axislabel").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${HIST_X/2},${HIST_Y+30})`).text("Abundance")
     enter.append("g").attr("class", "yaxis").call(d3.axisLeft(scaleY));
     enter.append("g").attr("class", "xaxis").attr('transform', `translate(${0},${HIST_Y})`).call(d3.axisBottom(scaleX));
     hist = hist.merge(enter)
         .attr('transform', function(d, i) {return `translate(${HIST_MAR_X + (i%2)*(1.5*HIST_MAR_X + HIST_X)},${HIST_MAR_Y + (Math.trunc(i/2))*(HIST_Y + HIST_MAR_Y)})`})
     hist.select(".histlabel").text(function(d){return d.name});
-    hist.select(".yaxis").call(d3.axisLeft(scaleY));
     return hist;
 }
   
@@ -299,7 +297,8 @@ function onClick(t, species) {
     d3.select(t).selectAll("text").style("font-weight", "bold");
     svg_hist.style("visibility", "visible");
     svg_hist.select("#histtitle").text(species);
-    reversed_data = [...GROUP.categories].reverse()
+    reversed_data = [...GROUP.categories].reverse();
+    total_subjects = d3.sum(GROUP.categories, c => c.sample_size);
     group_data = reversed_data.map(c => DATA.filter(d => d[GROUP.name] == c.name).map(d => d[species]));
     let create_hist = d3.histogram()
         .value(d => d) 
@@ -307,7 +306,11 @@ function onClick(t, species) {
         .thresholds(10);
     let bars = HIST.data(group_data)
         .selectAll(".bar")
-        .data(function(d, i) { return create_hist(d); })
+        .data(function(d, i) { 
+            let bins = create_hist(d);
+            bins.map(b => b["total"] = d3.sum(bins, b => b.length))
+            return bins; 
+        })
         bars.enter()
         .append("rect").attr('class', 'bar')
 //            .attr("fill", d => d3.interpolateViridis(d.x0))
@@ -319,9 +322,9 @@ function onClick(t, species) {
         .transition()
         .duration(500)
         .attr("x", d => scaleX(d.x0) + 2)
-        .attr("y", d => {return scaleY(d.length)})
+        .attr("y", function(d) {return scaleY(d.length/d.total*100)})
         .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
-        .attr("height", d => HIST_Y - scaleY(d.length))
+        .attr("height", d => HIST_Y - scaleY(d.length/d.total*100))
       };
 
 // helper function to select without clicking on tile
