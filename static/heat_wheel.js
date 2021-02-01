@@ -369,6 +369,8 @@ function onClick(t, species) {
         dist_area.enter()
             .append('path').attr('class', 'dist_area')
             .merge(dist_area)
+            .transition()
+            .duration(500)
             .attr('d', area);
     
     let dist = HIST.data(group_data)
@@ -380,6 +382,8 @@ function onClick(t, species) {
         dist.enter()
             .append('path').attr('class', 'dist')
             .merge(dist)
+            .transition()
+            .duration(500)
             .attr('d', line);
       };
 
