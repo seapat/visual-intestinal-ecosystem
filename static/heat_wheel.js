@@ -21,8 +21,6 @@ const LEGEND_TILE_HEIGHT = 10;
 const LEGEND_TILE_PADDING = 5;
 
 
-
-
 // data
 generate_groups(DATA, 'Age', 4);
 generate_groups(DATA, 'Diversity', 4);
@@ -256,16 +254,32 @@ let svg_hist_width = 2 * (HIST_X + 1.75*HIST_MAR_X)
 const svg_hist = d3.select('#histograms')
   .attr('width', svg_hist_width).attr("class", "histsbg");
 svg_hist.append("text").attr("id", "histtitle").style("text-anchor", "middle").attr('transform', `translate(${svg_hist_width/2},${30})`);
+//var scaleX = d3.scaleLog()
+//            .domain([0.1, 1])
+//            .range([0, HIST_X]).clamp(true);
 var scaleX = d3.scaleLinear()
             .domain([0, 1])
             .range([0, HIST_X]);
+
 var scaleY = d3.scaleLinear()
             .domain([0, 100])
             .range([HIST_Y, 0]);
 let HIST = drawHist();
 
+// show bars if checkbox is activated
+d3.select("#showbars").on("change",show_bars);
 
-// function for drawing histograms (except bars)
+function show_bars() {
+    if (d3.select("#showbars").property("checked")){
+        console.log(HIST.selectAll(".bar"));
+					HIST.selectAll(".bar").style("visibility", "visible");
+				} else {
+					HIST.selectAll(".bar").style("visibility", "hidden");		
+				}	
+}
+
+
+// function for drawing histograms (except bars/density)
 function drawHist() {
     cat_count = GROUP.categories.length
     reversed_data = [...GROUP.categories].reverse() // reverse data to match order in heatwheel
@@ -281,6 +295,7 @@ function drawHist() {
     enter.append("text").attr("class", "axislabel").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${HIST_X/2},${HIST_Y+30})`).text("Abundance")
     enter.append("g").attr("class", "yaxis").call(d3.axisLeft(scaleY));
     enter.append("g").attr("class", "xaxis").attr('transform', `translate(${0},${HIST_Y})`).call(d3.axisBottom(scaleX));
+//                                                                                                 .tickFormat(d => {var log = Math.log(d) / Math.LN10; return Math.abs(Math.round(log) - log) < 1e-6 ? Math.round(log) : ''}));
     hist = hist.merge(enter)
         .attr('transform', function(d, i) {return `translate(${HIST_MAR_X + (i%2)*(1.5*HIST_MAR_X + HIST_X)},${HIST_MAR_Y + (Math.trunc(i/2))*(HIST_Y + HIST_MAR_Y)})`})
     hist.select(".histlabel").text(function(d){return d.name});
@@ -300,6 +315,18 @@ function onClick(t, species) {
     reversed_data = [...GROUP.categories].reverse();
     total_subjects = d3.sum(GROUP.categories, c => c.sample_size);
     group_data = reversed_data.map(c => DATA.filter(d => d[GROUP.name] == c.name).map(d => d[species]));
+
+    thresholds = scaleX.ticks(50);
+    
+    function kde(kernel, thresholds, data) {
+      return thresholds.map(t => [scaleX(t), d3.mean(data, d => scaleY(kernel(t - d)))]);
+    }
+    
+    function gauss_kernel(length_scale) {
+      return x => Math.exp(-Math.pow(x, 2)/(2*Math.pow(length_scale, 2)))*100;
+    }
+
+    // create bars
     let create_hist = d3.histogram()
         .value(d => d) 
         .domain(scaleX.domain())
@@ -324,7 +351,36 @@ function onClick(t, species) {
         .attr("x", d => scaleX(d.x0) + 2)
         .attr("y", function(d) {return scaleY(d.length/d.total*100)})
         .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
-        .attr("height", d => HIST_Y - scaleY(d.length/d.total*100))
+        .attr("height", d => HIST_Y - scaleY(d.length/d.total*100));
+    
+    // create density plot (area and line)
+    let line = d3.line()
+            .curve(d3.curveBasis);
+    let area = d3.area().y0(HIST_Y);
+    let length_scale = 0.05;
+    
+    
+    let dist_area = HIST.data(group_data)
+        .selectAll(".dist_area")
+        .data(function(d, i) {
+            density = kde(gauss_kernel(length_scale), thresholds, d)
+            return [density]; 
+        })
+        dist_area.enter()
+            .append('path').attr('class', 'dist_area')
+            .merge(dist_area)
+            .attr('d', area);
+    
+    let dist = HIST.data(group_data)
+        .selectAll(".dist")
+        .data(function(d, i) {
+            density = kde(gauss_kernel(length_scale), thresholds, d)
+            return [density]; 
+        })
+        dist.enter()
+            .append('path').attr('class', 'dist')
+            .merge(dist)
+            .attr('d', line);
       };
 
 // helper function to select without clicking on tile
