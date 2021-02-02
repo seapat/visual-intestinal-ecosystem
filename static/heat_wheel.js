@@ -59,9 +59,9 @@ GROUPS.map(g =>
 );
 grouping_choice.on('change', event => {
   GROUP = GROUPS.filter(g => g.name == event.target.value)[0];
-  paint_group(GROUP, TILESET);
+  create_heatmap(GROUP, TILESET);
   HIST = drawHist();
-  if (SELECTED) click_helper(SELECTED.id);
+  if (SELECTED) updateHist(SELECTED);
 });
 
 // #### dropdown for choosing reference mean
@@ -73,8 +73,8 @@ REFERENCE_MEAN_OPTIONS.map(o =>
 );
 reference_mean_choice.on('change', event => {
   TILESET = event.target.value;
-  paint_group(GROUP, TILESET);
-  if (SELECTED) click_helper(SELECTED.id);
+  create_heatmap(GROUP, TILESET);
+  if (SELECTED) updateHist(SELECTED);
 });
 
 
@@ -318,12 +318,13 @@ function drawHist() {
 
 
 // function for drawing bars of histograms
-function onClick(t, species) {
-    SELECTED = t;
-    d3.select(t.parentNode).selectAll("path").style("stroke", "");
-    d3.select(t.parentNode).selectAll("text").style("font-weight", "");
-    d3.select(t).selectAll("path").style("stroke", "black");
-    d3.select(t).selectAll("text").style("font-weight", "bold");
+function updateHist(species) {
+    // mark species in heatmap
+    if (SELECTED) document.getElementById(`${SELECTED}_sector`).classList.remove('selected');
+    SELECTED = species;
+    document.getElementById(`${species}_sector`).classList.add('selected');
+
+    // update histogram
     svg_hist.style("visibility", "visible");
     svg_hist.select("#histtitle").text(species);
     reversed_data = [...GROUP.categories].reverse();
@@ -401,15 +402,8 @@ function onClick(t, species) {
             .attr('d', line);
       };
 
-// helper function to select without clicking on tile
-function click_helper(id) {
-    new_sel = d3.select('#' + id)._groups[0][0];
-    species = d3.select(new_sel).select(".species_label").text()
-    onClick(new_sel, species);
-}
-
 // ##### graph creator ####
-function paint_group(group, tileset) {
+function create_heatmap(group, tileset) {
   // clear graph
   svg.html('');
 
@@ -461,12 +455,11 @@ function paint_group(group, tileset) {
       .text(steps[i].name)
       .attr('class', 'group_label');
   }
-    let id = 0
   // paint graph
   bacteria_angles.map(d => {
     const species = d.data;
     const piece = svg.append('g')
-      .attr('id', function() {id++; return 'ID' + id.toString();})
+      .attr('id', `${species}_sector`)
       .attr('class', 'species_group')
       .on('mouseenter', () => center_label.text(species))
       .on('mouseleave', () => center_label.text(''));
@@ -481,7 +474,7 @@ function paint_group(group, tileset) {
       .attr('alignment-baseline', 'middle')
       .attr('text-anchor', (rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90 < 90 ? 'end': 'start'))
       .text(species)
-      .on('click', function(m) {return onClick(this.parentNode, species)});
+      .on('click', () => updateHist(species)); //function(m) {return updateHist(this.parentNode, species)});
 
     // paint heatmap tiles for species
     group.categories.map(cat => {
@@ -489,7 +482,7 @@ function paint_group(group, tileset) {
          .attr('fill', d3.interpolateViridis(cat[tileset][species]))
          .attr('d', cat.ring(d))
          .attr('class', 'heatmap_tile')
-         .on('click', function(m) {return onClick(this.parentNode, species)})
+         .on('click', () => updateHist(species)) //function(m) {return updateHist(this.parentNode, species)})
          .append('title')
          .text(`${cat.name} (${cat.sample_size} Samples)`);
 
@@ -498,5 +491,5 @@ function paint_group(group, tileset) {
 }
 
 // ##### create initial graph ####
-paint_group(GROUP, TILESET);
-click_helper('ID1');
+create_heatmap(GROUP, TILESET);
+updateHist(SPECIES[0]);
