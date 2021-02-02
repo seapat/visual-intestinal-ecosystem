@@ -40,9 +40,6 @@
   text-anchor: middle;
 }
 
-.histbg {
-    fill: white;
-}
 
 .histsbg {
     background: whitesmoke;
@@ -61,18 +58,22 @@
 
 .bar {
 /*    stroke: black;*/
-    fill: #be013c;
+    /* fill: #be013c; */
+    fill: white;
     visibility: hidden;
 }
 
 .dist {
-    stroke: #be013c;
+    /* stroke: #be013c; */
+    stroke: white;
+    stroke-width: 3px;
     fill: none;
 }
 
 .dist_area {
 /*    stroke: #be013c;*/
-    fill: #be013c;
+    /* fill: #be013c; */
+    fill: white;
     stroke-width: 0;
-    opacity: 0.2;
+    opacity: 0.5;
 }

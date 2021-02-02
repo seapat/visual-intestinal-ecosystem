@@ -426,13 +426,20 @@ function updateHist(species) {
             density = kde(gauss_kernel(length_scale), thresholds, d)
             return [density];
         })
-        dist.enter()
-            .append('path').attr('class', 'dist')
-            .merge(dist)
-            .transition()
-            .duration(500)
-            .attr('d', line);
-      };
+    dist.enter()
+        .append('path').attr('class', 'dist')
+        .merge(dist)
+        .transition()
+        .duration(500)
+        .attr('d', line);
+
+    // update histogram colors
+    svg_hist.selectAll('.histbg')
+      .data(reversed_data)
+      .transition()
+      .duration(500)
+      .attr('fill', d => d3.interpolateViridis(d[TILESET][species]));
+};
 
 // ##### graph creator ####
 function create_heatmap(group, tileset) {
