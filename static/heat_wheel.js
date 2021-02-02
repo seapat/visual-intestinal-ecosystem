@@ -31,11 +31,17 @@ const GROUPS = preprocess_groups(
 // reference mean
 const REFERENCE_MEAN_OPTIONS = [
   {
-    name:'species mean (comp. to group avg.)',
+    name:'species mean',
     tileset:'species_difference'
   }, {
-    name: 'group mean (comp. to species avg.)',
+    name:'species mean (comp. to group avg.)',
+    tileset:'species_difference_ga'
+  }, {
+    name: 'group mean',
     tileset: 'group_difference'
+  }, {
+    name: 'group mean (comp. to species avg.)',
+    tileset: 'group_difference_sa'
   }
 ];
 
@@ -118,7 +124,7 @@ function generate_tile_rings(categories) {
 
 // unified group preprocessing
 function preprocess_groups(group_names) {
-    
+
   // get an array of objects containing group name and possible values = categories
   const groups = group_names.map(by => make_group(by));
 
@@ -146,10 +152,9 @@ function preprocess_groups(group_names) {
 
     // calculate mean differences per group and species
 
-    // ## difference from species mean compared to group average
-    // mean differences across graph
+    // ## difference from species mean (optionally compared to group average)
+    // array for global normalization and initialization of maps
     const species_differences = [];
-    // initialize map
     group.categories.map(c => c.species_difference = {});
     // loop species, then groups for difference to species mean
     SPECIES.map(s => {
@@ -159,20 +164,25 @@ function preprocess_groups(group_names) {
           grouped_data.get(c.name),
           r => r[s]
         ) - species_mean;
-        // species_differences.push(c.species_difference[s]);
+        species_differences.push(c.species_difference[s]);
       });
     });
+
     // difference to group average
+    // array for global normalization
+    const species_differences_ga = [];
+    // loop groups, difference to avg. group difference
     group.categories.map(c => {
+      c.species_difference_ga = {};
       const group_mean = d3.mean(
         SPECIES.map(s => c.species_difference[s])
       );
       SPECIES.map(s => {
-        c.species_difference[s] = c.species_difference[s] - group_mean;
-        species_differences.push(c.species_difference[s]);
+        c.species_difference_ga[s] = c.species_difference[s] - group_mean;
+        species_differences_ga.push(c.species_difference_ga[s]);
       });
     });
-      
+
     // ## difference from group mean compared to species average
     // mean differences across graph
     const group_differences = [];
@@ -188,15 +198,17 @@ function preprocess_groups(group_names) {
       );
       SPECIES.map(s => {
         c.group_difference[s] = d3.mean(group, r => r[s]) - group_mean;
-        // group_differences.push(c.group_difference[s]);
+        group_differences.push(c.group_difference[s]);
       });
     });
     // difference to species average
+    const group_differences_sa = [];
+    group.categories.map(c => c.group_difference_sa = {});
     SPECIES.map(s => {
       const species_mean = d3.mean(group.categories.map(c => c.group_difference[s]));
       group.categories.map(c => {
-        c.group_difference[s] = c.group_difference[s] - species_mean;
-        group_differences.push(c.group_difference[s]);
+        c.group_difference_sa[s] = c.group_difference[s] - species_mean;
+        group_differences_sa.push(c.group_difference_sa[s]);
       });
     });
 
@@ -217,7 +229,9 @@ function preprocess_groups(group_names) {
       group[tileset] = { scaled_zero: (0 - min_mean)/mean_range };
     }
     normalize_across_graph('species_difference', species_differences);
+    normalize_across_graph('species_difference_ga', species_differences_ga);
     normalize_across_graph('group_difference', group_differences);
+    normalize_across_graph('group_difference_sa', group_differences_sa);
 
 
   });
@@ -274,8 +288,8 @@ function show_bars() {
         console.log(HIST.selectAll(".bar"));
 					HIST.selectAll(".bar").style("visibility", "visible");
 				} else {
-					HIST.selectAll(".bar").style("visibility", "hidden");		
-				}	
+					HIST.selectAll(".bar").style("visibility", "hidden");
+				}
 }
 
 
@@ -301,7 +315,7 @@ function drawHist() {
     hist.select(".histlabel").text(function(d){return d.name});
     return hist;
 }
-  
+
 
 // function for drawing bars of histograms
 function onClick(t, species) {
@@ -317,26 +331,26 @@ function onClick(t, species) {
     group_data = reversed_data.map(c => DATA.filter(d => d[GROUP.name] == c.name).map(d => d[species]));
 
     thresholds = scaleX.ticks(50);
-    
+
     function kde(kernel, thresholds, data) {
       return thresholds.map(t => [scaleX(t), d3.mean(data, d => scaleY(kernel(t - d)))]);
     }
-    
+
     function gauss_kernel(length_scale) {
       return x => Math.exp(-Math.pow(x, 2)/(2*Math.pow(length_scale, 2)))*100;
     }
 
     // create bars
     let create_hist = d3.histogram()
-        .value(d => d) 
+        .value(d => d)
         .domain(scaleX.domain())
         .thresholds(10);
     let bars = HIST.data(group_data)
         .selectAll(".bar")
-        .data(function(d, i) { 
+        .data(function(d, i) {
             let bins = create_hist(d);
             bins.map(b => b["total"] = d3.sum(bins, b => b.length))
-            return bins; 
+            return bins;
         })
         bars.enter()
         .append("rect").attr('class', 'bar')
@@ -352,19 +366,19 @@ function onClick(t, species) {
         .attr("y", function(d) {return scaleY(d.length/d.total*100)})
         .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
         .attr("height", d => HIST_Y - scaleY(d.length/d.total*100));
-    
+
     // create density plot (area and line)
     let line = d3.line()
             .curve(d3.curveBasis);
     let area = d3.area().y0(HIST_Y);
     let length_scale = 0.05;
-    
-    
+
+
     let dist_area = HIST.data(group_data)
         .selectAll(".dist_area")
         .data(function(d, i) {
             density = kde(gauss_kernel(length_scale), thresholds, d)
-            return [density]; 
+            return [density];
         })
         dist_area.enter()
             .append('path').attr('class', 'dist_area')
@@ -372,12 +386,12 @@ function onClick(t, species) {
             .transition()
             .duration(500)
             .attr('d', area);
-    
+
     let dist = HIST.data(group_data)
         .selectAll(".dist")
         .data(function(d, i) {
             density = kde(gauss_kernel(length_scale), thresholds, d)
-            return [density]; 
+            return [density];
         })
         dist.enter()
             .append('path').attr('class', 'dist')
@@ -477,7 +491,7 @@ function paint_group(group, tileset) {
          .on('click', function(m) {return onClick(this.parentNode, species)})
          .append('title')
          .text(`${cat.name} (${cat.sample_size} Samples)`);
-         
+
     });
   });
 }
@@ -485,4 +499,3 @@ function paint_group(group, tileset) {
 // ##### create initial graph ####
 paint_group(GROUP, TILESET);
 click_helper('ID1');
-
