@@ -360,7 +360,12 @@ function updateHist(species) {
     svg_hist.select("#histtitle").text(species);
     reversed_data = [...GROUP.categories].reverse();
     total_subjects = d3.sum(GROUP.categories, c => c.sample_size);
-    group_data = reversed_data.map(c => DATA.filter(d => d[GROUP.name] == c.name).map(d => d[species]));
+    group_data = reversed_data.map(c => {
+      return {
+        heatmap_val: c[TILESET][species],
+        data: DATA.filter(d => d[GROUP.name] == c.name).map(d => d[species])
+      };
+    });
 
     thresholds = scaleX.ticks(50);
 
@@ -380,8 +385,9 @@ function updateHist(species) {
     let bars = HIST.data(group_data)
         .selectAll(".bar")
         .data(function(d, i) {
-            let bins = create_hist(d);
+            let bins = create_hist(d.data);
             bins.map(b => b["total"] = d3.sum(bins, b => b.length))
+            bins.map(b => b["heatmap_val"] = d.heatmap_val);
             return bins;
         });
     bars.enter().append("rect")
@@ -397,7 +403,8 @@ function updateHist(species) {
       .attr("x", d => scaleX(d.x0) + 2)
       .attr("y", function(d) {return scaleY(d.length/d.total*100)})
       .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
-      .attr("height", d => HIST_Y - scaleY(d.length/d.total*100));
+      .attr("height", d => HIST_Y - scaleY(d.length/d.total*100))
+      .attr("fill", d => d3.interpolateViridis(d.heatmap_val));
 
     // create density plot (area and line)
     let line = d3.line()
@@ -409,30 +416,32 @@ function updateHist(species) {
     let dist_area = HIST.data(group_data)
         .selectAll(".dist_area")
         .data(function(d, i) {
-            density = kde(gauss_kernel(length_scale), thresholds, d)
-            return [density];
+            density = kde(gauss_kernel(length_scale), thresholds, d.data);
+            return [{ heatmap_val: d.heatmap_val, data:density }];
         });
-    console.log(dist_area);
+    // console.log(dist_area);
     dist_area.enter()
         .append('path').attr('class', 'dist_area')
         .merge(dist_area)
         .transition()
         .duration(500)
-        .attr('d', area);
+        .attr('d', d => area(d.data))
+        .attr('fill', d => d3.interpolateViridis(d.heatmap_val));
 
     let dist = HIST.data(group_data)
         .selectAll(".dist")
         .data(function(d, i) {
-            density = kde(gauss_kernel(length_scale), thresholds, d)
-            return [density];
+            density = kde(gauss_kernel(length_scale), thresholds, d.data)
+            return [{ heatmap_val: d.heatmap_val, data: density }];
         })
-        dist.enter()
-            .append('path').attr('class', 'dist')
-            .merge(dist)
-            .transition()
-            .duration(500)
-            .attr('d', line);
-      };
+    dist.enter()
+        .append('path').attr('class', 'dist')
+        .merge(dist)
+        .transition()
+        .duration(500)
+        .attr('d', d => line(d.data))
+        .attr('stroke', d => d3.interpolateViridis(d.heatmap_val));
+};
 
 // ##### graph creator ####
 function create_heatmap(group, tileset) {

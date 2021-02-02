@@ -61,18 +61,18 @@
 
 .bar {
 /*    stroke: black;*/
-    fill: #be013c;
+    /* fill: #be013c; */
     visibility: hidden;
 }
 
 .dist {
-    stroke: #be013c;
+    /* stroke: #be013c; */
     fill: none;
 }
 
 .dist_area {
 /*    stroke: #be013c;*/
-    fill: #be013c;
+    /* fill: #be013c; */
     stroke-width: 0;
     opacity: 0.2;
 }
