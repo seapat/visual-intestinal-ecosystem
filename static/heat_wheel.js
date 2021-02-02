@@ -266,8 +266,12 @@ const outer_circle = d3.arc()
 // prepare for histograms
 let svg_hist_width = 2 * (HIST_X + 1.75*HIST_MAR_X)
 const svg_hist = d3.select('#histograms')
-  .attr('width', svg_hist_width).attr("class", "histsbg");
-svg_hist.append("text").attr("id", "histtitle").style("text-anchor", "middle").attr('transform', `translate(${svg_hist_width/2},${30})`);
+  .attr('width', svg_hist_width)
+  .attr("class", "histsbg");
+svg_hist.append("text")
+  .attr("id", "histtitle")
+  .style("text-anchor", "middle")
+  .attr('transform', `translate(${svg_hist_width/2},${30})`);
 //var scaleX = d3.scaleLog()
 //            .domain([0.1, 1])
 //            .range([0, HIST_X]).clamp(true);
@@ -298,20 +302,47 @@ function drawHist() {
     cat_count = GROUP.categories.length
     reversed_data = [...GROUP.categories].reverse() // reverse data to match order in heatwheel
     height = HIST_MAR_Y + (cat_count/2).toFixed()*(HIST_Y + HIST_MAR_Y);
-    let hist = svg_hist.attr('height', height).selectAll(".hist_group")
-    .data(reversed_data)
+    let hist = svg_hist
+      .attr('height', height)
+      .selectAll(".hist_group")
+      .data(reversed_data);
     hist.exit().remove();
     let enter = hist.enter()
-        .append("g").attr("class", "hist_group")
-    enter.append("rect").attr("class", "histbg").attr("width", HIST_X).attr("height", HIST_Y)
-    enter.append("text").attr("class", "histlabel").style("text-anchor", "middle").attr('alignment-baseline', 'bottom').attr('transform', `translate(${HIST_X/2},${-5})`);
-    enter.append("text").attr("class", "axislabel").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${-40},${HIST_Y/2})rotate(-90)`).text("Percentage of subjects")
-    enter.append("text").attr("class", "axislabel").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${HIST_X/2},${HIST_Y+30})`).text("Abundance")
-    enter.append("g").attr("class", "yaxis").call(d3.axisLeft(scaleY));
-    enter.append("g").attr("class", "xaxis").attr('transform', `translate(${0},${HIST_Y})`).call(d3.axisBottom(scaleX));
-//                                                                                                 .tickFormat(d => {var log = Math.log(d) / Math.LN10; return Math.abs(Math.round(log) - log) < 1e-6 ? Math.round(log) : ''}));
+      .append("g")
+      .attr("class", "hist_group");
+    enter.append("rect")
+      .attr("class", "histbg")
+      .attr("width", HIST_X)
+      .attr("height", HIST_Y);
+    enter.append("text")
+      .attr("class", "histlabel")
+      .style("text-anchor", "middle")
+      .attr('alignment-baseline', 'bottom')
+      .attr('transform', `translate(${HIST_X/2},${-5})`);
+    enter.append("text")
+      .attr("class", "axislabel")
+      .style("text-anchor", "middle")
+      .attr('alignment-baseline', 'middle')
+      .attr('transform', `translate(${-40},${HIST_Y/2})rotate(-90)`)
+      .text("Percentage of subjects");
+    enter.append("text")
+      .attr("class", "axislabel")
+      .style("text-anchor", "middle")
+      .attr('alignment-baseline', 'middle')
+      .attr('transform', `translate(${HIST_X/2},${HIST_Y+30})`)
+      .text("Abundance");
+    enter.append("g")
+      .attr("class", "yaxis")
+      .call(d3.axisLeft(scaleY));
+    enter.append("g")
+      .attr("class", "xaxis")
+      .attr('transform', `translate(${0},${HIST_Y})`)
+      .call(d3.axisBottom(scaleX));
+//  tickFormat(d => {var log = Math.log(d) / Math.LN10; return Math.abs(Math.round(log) - log) < 1e-6 ? Math.round(log) : ''}));
     hist = hist.merge(enter)
-        .attr('transform', function(d, i) {return `translate(${HIST_MAR_X + (i%2)*(1.5*HIST_MAR_X + HIST_X)},${HIST_MAR_Y + (Math.trunc(i/2))*(HIST_Y + HIST_MAR_Y)})`})
+        .attr('transform', function(d, i) {
+          return `translate(${HIST_MAR_X + (i%2)*(1.5*HIST_MAR_X + HIST_X)},${HIST_MAR_Y + (Math.trunc(i/2))*(HIST_Y + HIST_MAR_Y)})`
+        });
     hist.select(".histlabel").text(function(d){return d.name});
     return hist;
 }
@@ -352,25 +383,25 @@ function updateHist(species) {
             let bins = create_hist(d);
             bins.map(b => b["total"] = d3.sum(bins, b => b.length))
             return bins;
-        })
-        bars.enter()
-        .append("rect").attr('class', 'bar')
-//            .attr("fill", d => d3.interpolateViridis(d.x0))
-        .attr("x", d => scaleX(d.x0) + 2)
-        .attr("y", d => {return HIST_Y})
-        .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
-        .attr("height", 0)
-        .merge(bars)
-        .transition()
-        .duration(500)
-        .attr("x", d => scaleX(d.x0) + 2)
-        .attr("y", function(d) {return scaleY(d.length/d.total*100)})
-        .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
-        .attr("height", d => HIST_Y - scaleY(d.length/d.total*100));
+        });
+    bars.enter().append("rect")
+      .attr('class', 'bar')
+//    .attr("fill", d => d3.interpolateViridis(d.x0))
+      .attr("x", d => scaleX(d.x0) + 2)
+      .attr("y", d => {return HIST_Y})
+      .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
+      .attr("height", 0)
+      .merge(bars)
+      .transition()
+      .duration(500)
+      .attr("x", d => scaleX(d.x0) + 2)
+      .attr("y", function(d) {return scaleY(d.length/d.total*100)})
+      .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
+      .attr("height", d => HIST_Y - scaleY(d.length/d.total*100));
 
     // create density plot (area and line)
     let line = d3.line()
-            .curve(d3.curveBasis);
+      .curve(d3.curveBasis);
     let area = d3.area().y0(HIST_Y);
     let length_scale = 0.05;
 
@@ -380,13 +411,14 @@ function updateHist(species) {
         .data(function(d, i) {
             density = kde(gauss_kernel(length_scale), thresholds, d)
             return [density];
-        })
-        dist_area.enter()
-            .append('path').attr('class', 'dist_area')
-            .merge(dist_area)
-            .transition()
-            .duration(500)
-            .attr('d', area);
+        });
+    console.log(dist_area);
+    dist_area.enter()
+        .append('path').attr('class', 'dist_area')
+        .merge(dist_area)
+        .transition()
+        .duration(500)
+        .attr('d', area);
 
     let dist = HIST.data(group_data)
         .selectAll(".dist")
