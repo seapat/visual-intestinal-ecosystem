@@ -445,6 +445,7 @@ function paint_group(group, tileset) {
     {value: group[tileset].scaled_zero + ((1 - group[tileset].scaled_zero) / 2), name: ''},
     {value: 1, name: 'highest'}
   ];
+  steps.reverse();
   for (let i = 0; i < steps.length; i++) {
     const y_pos = (LEGEND_TILE_HEIGHT + LEGEND_TILE_PADDING) * i;
     color_legend.append('rect')
