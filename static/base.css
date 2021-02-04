@@ -39,3 +39,12 @@ h2 {
   font-size: 1.3em;
 
 }
+
+/* centered text is hard to read */
+p {
+  text-align: left;
+}
+
+ul {
+  text-align: left;
+}

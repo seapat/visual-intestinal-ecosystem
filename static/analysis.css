@@ -1,3 +1,41 @@
+/* GENERAL LAYOUT */
+
+/* allow grid layout without needing to import bootstrap:
+  see https://hackernoon.com/how-css-grid-beats-bootstrap-85d5881cf163 for deets */
+.wrapper {
+  display: grid;
+  /* grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: 40px 100px 40px; */
+}
+.heatmap {
+  grid-column: span 7;
+}
+
+.histograms {
+  grid-column: span 5;
+}
+
+.heatmap_description {
+  grid-column: span 12;
+}
+
+/* histograms below heatmap if screen is too small */
+@media screen and (max-width: 1668px) {
+  .heatmap {
+    grid-row: 1;
+    grid-column: span 12;
+  }
+  .histograms {
+    grid-row: 2;
+    grid-column: span 12;
+  }
+}
+
+/* HEAT WHEEL */
+.heatmap_instructions {
+  text-align: center;
+}
+
 .species_label, .group_label {
   font-size: 10;
   color: black;
@@ -40,6 +78,7 @@
   text-anchor: middle;
 }
 
+/* HISTOGRAMS */
 .histbg {
     fill: white;
 }
@@ -48,10 +87,6 @@
     background: whitesmoke;
     visibility: hidden;
     border-style:solid;
-}
-
-#histograms {
-    float: right;
 }
 
 .axislabel, .histlabel {

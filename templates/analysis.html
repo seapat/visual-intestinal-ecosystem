@@ -3,7 +3,7 @@
 {% extends "base.html" %}
 
 {% block extrastyles %}
-<link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='heat_wheel.css') }}" >
+<link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='analysis.css') }}" >
 <style>
   .analysis {
     font-weight: bold;
@@ -12,53 +12,63 @@
 {% endblock %}
 
 {% block content %}
-<div id="content">
-  <h2>Bacteria abundance by species and
-    <select name="grouping" id="select_grouping">
-    </select>
-  </h2>
-  <h3>
-    difference from
-    <select name="reference_mean" id="select_reference_mean">
-    </select>
+<div id="content" class="wrapper">
+
+  <div class="heatmap">
+    <h2>Bacteria abundance by species and
+      <select name="grouping" id="select_grouping">
+      </select>
+    </h2>
+    <h3>
+      difference from
+      <select name="reference_mean" id="select_reference_mean">
+      </select>
+    </h3>
+    <svg id="heat_wheel"></svg>
+    <p class="heatmap_instructions">
+      Values normalized across entire heatmap. <br/>
+      Click on heatmap or bacteria names to see distribution of original data.
+    </p>
+  </div>
+
+  <div class="histograms">
+    <svg id="histograms"></svg>
     <br/>
-    <input type="checkbox" id="showbars"> show bars
-  </h3>
-  <svg id="heat_wheel"></svg>
-  <svg id="histograms"></svg>
-  <p>
-    Values normalized across entire heatmap. <br/>
-    Click on heatmap or bacteria names to see distribution of original data.
-  </p>
-  <p>
-    Abundance has been normalized to values from zero to one for each species,
-    therefore there is no direct comparison of absolute values between species.
-    <br/>
-    Within each group, the mean bacteria abundance is computed per species.
-    The heat map shows the difference of those means to either
-    <ul>
-      <li>
-        the mean abundance of the species across groups
-      </li>
-      <li>
-        To accommodate the fact that some groups may have a generally higher count
-        of all bacteria species, there is also the option to calculate the mean
-        of those differences within groups and relate the differences to this
-        mean.
-      </li>
-      <li>
-        the mean abundance of all species within the group
-      </li>
-      <li>
-        Same as above, to account for some species showing a generally lower mean
-        abundance, it is possible to calculate the mean of those differences
-        within species and relate the differences to this mean.
-      </li>
-    <ul/>
-    Before display, all values are normalized again in order to use the entire
-    available color spectrum of the heatmap. This means that the colors of
-    different heat maps are not comparable.
-  </p>
+    <input type="checkbox" id="showbars" name="showbars">
+    <label for="showbars">show bars</label>
+  </div>
+
+  <div class="heatmap_description">
+    <p>
+      Abundance has been normalized to values from zero to one for each species,
+      therefore there is no direct comparison of absolute values between species.
+      <br/>
+      Within each group, the mean bacteria abundance is computed per species.
+      The heat map shows the difference of those means to either
+      <ul>
+        <li>
+          the mean abundance of the species across groups
+        </li>
+        <li>
+          To accommodate the fact that some groups may have a generally higher count
+          of all bacteria species, there is also the option to calculate the mean
+          of those differences within groups and relate the differences to this
+          mean.
+        </li>
+        <li>
+          the mean abundance of all species within the group
+        </li>
+        <li>
+          Same as above, to account for some species showing a generally lower mean
+          abundance, it is possible to calculate the mean of those differences
+          within species and relate the differences to this mean.
+        </li>
+      <ul/>
+      Before display, all values are normalized again in order to use the entire
+      available color spectrum of the heatmap. This means that the colors of
+      different heat maps are not comparable.
+    </p>
+  </div>
 </div>
 <script type="text/javascript">
   const DATA = {{ jsonTable | safe }};
@@ -66,5 +76,5 @@
   // console.log(data);
   // console.log(species);
 </script>
-<script src="{{ url_for('static', filename='heat_wheel.js') }}"></script>
+<script src="{{ url_for('static', filename='analysis.js') }}"></script>
 {% endblock %}
