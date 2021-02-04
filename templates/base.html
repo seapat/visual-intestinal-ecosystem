@@ -20,24 +20,24 @@
     {% endblock %}
 </head>
 <body>
-    
-    
-    <ul>
+
+
+    <ul class="nav">
         <li class="home"><a href="{{ url_for('home') }}">Home</a></li>
         <li class="metadata"><a href="{{ url_for('metadata') }}">Metadata</a></li>
         <li class="analysis"><a href="{{ url_for('analysis') }}">Ecosystem Data</a></li>
-        
-    
+
+
     <li class="about" style="float:right"><a href="{{ url_for('about') }}">About</a></li>
-</ul>
+    </ul>
 
 
-<button class="open-button" onclick="openForm()" >Upload</button>
-    
+    <button class="open-button" onclick="openForm()" >Upload</button>
+
     <div class="form-popup" id="myForm">
-        
+
         <form method=post action="getfile" class="form-container" enctype="multipart/form-data">
-            
+
             <h1>Enter here your own Metadata and bacteria file TSVs:</h1>
                 <label id="meta_label" for="meta" class="custom-file-upload"><b>Add Own Metadata</b>
                 <input id="meta" type="file" name="meta" onclick="displayMetaName()"/>
@@ -47,19 +47,19 @@
                 <input id="bacteria" type="file" name="bacteria" onclick="displayBactName()"/>
                 </label>
                 <p id="metaUpload">
-                    
+
                 </p>
                 <p id="bactUpload">
-                    
+
                 </p>
-          
+
                 <button type="submit" class="btn">Upload</button>
                 <button type="button" class="btn cancel" onclick="closeForm()">Cancel</button>
 
         </form>
     </div>
 
-   
+
     <script>
         var meta = document.getElementById("meta");
         var bact = document.getElementById("bacteria");
@@ -86,7 +86,7 @@
                 reader.readAsText(inputFile, "UTF-8");
                 reader.onload = function (evt) {
 
-                    
+
                     var meta_cols = ["SampleID", "Age", "Sex", "Nationality", "DNA_extraction_method", "ProjectID", "Diversity", "BMI_group", "SubjectID", "Time"]
                     console.log(evt.target.result);
                     let data = d3.dsvFormat('\t').parse(evt.target.result).columns;
@@ -95,15 +95,15 @@
                     let index = -1;  //initialize index with -1 so that 0 (the first index) is larger
                     let counter = 0
                     //console.log(data[0])
-                    
+
                     for(var d of meta_cols){
-                        
+
                         if(data.includes(d) && data.indexOf(d) > index){
                             console.log(d)
                             console.log("True");
                             counter++;
                         }
-                        
+
                     }
 
                     if(counter == 10){
@@ -160,12 +160,12 @@
 
 
             }
-        }   
+        }
 
         function openForm() {
             document.getElementById("myForm").style.display = "block";
         }
-        
+
         function closeForm() {
             document.getElementById("myForm").style.display = "none";
         }
