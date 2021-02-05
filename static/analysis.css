@@ -12,23 +12,27 @@
 }
 
 .histograms {
-  grid-column: span 5;
+  grid-column: 8 / span 5;
 }
-
+/*
 .heatmap_description {
-  grid-column: span 12;
-}
+  grid-column: 3 / span 8;
+} */
 
 /* histograms below heatmap if screen is too small */
 @media screen and (max-width: 1668px) {
   .heatmap {
     grid-row: 1;
-    grid-column: span 12;
+    grid-column: 1 / span 12;
   }
   .histograms {
     grid-row: 2;
-    grid-column: span 12;
+    grid-column: 1 / span 12;
   }
+  /* .heatmap_description {
+    grid-row: 3;
+    grid-column: 1 / span 12;
+  } */
 }
 
 /* HEAT WHEEL */
