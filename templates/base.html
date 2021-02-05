@@ -1,9 +1,10 @@
+<!DOCTYPE html>
+<html lang="en">
 <!--Mario Rauh 3916968-->
 <!--Sean Klein 5575709-->
 
-<html lang="en">
 <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}"> <!--https://flask.palletsprojects.com/en/1.1.x/patterns/favicon/-->
     <link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='base.css') }}" >
     <link rel="stylesheet" type="text/css" href= "{{ url_for('static', filename='tooltip.css') }}" >
@@ -16,20 +17,24 @@
     <!-- insert more css from other files if necessary -->
     <link rel="stylesheet" href= "{{ url_for('static', filename='upload.css') }}" >
     <link rel="stylesheet" href= "{{ url_for('static', filename='input.css') }}" >
+
     {% block extrastyles %}
     {% endblock %}
+    <!-- google fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Lora&family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="navbar">
+        <ul class="nav">
+            <li class="home"><a href="{{ url_for('home') }}">Home</a></li>
+            <li class="metadata"><a href="{{ url_for('metadata') }}">Metadata</a></li>
+            <li class="analysis"><a href="{{ url_for('analysis') }}">Ecosystem Data</a></li>
 
 
-    <ul class="nav">
-        <li class="home"><a href="{{ url_for('home') }}">Home</a></li>
-        <li class="metadata"><a href="{{ url_for('metadata') }}">Metadata</a></li>
-        <li class="analysis"><a href="{{ url_for('analysis') }}">Ecosystem Data</a></li>
-
-
-    <li class="about" style="float:right"><a href="{{ url_for('about') }}">About</a></li>
-    </ul>
+        <li class="about" style="float:right"><a href="{{ url_for('about') }}">About</a></li>
+        </ul>
+    </div>
 
 
     <button class="open-button" onclick="openForm()" >Upload</button>
