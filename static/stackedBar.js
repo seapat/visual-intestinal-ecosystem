@@ -10,7 +10,7 @@ let margin = {top: 40, right: 30, bottom: 65, left: 50},
 let svg = d3.select("#stacked_bar")
     .append('svg')
     .attr('viewBox', `0 0 ${width + margin.left+ margin.right} ${height + margin.top + margin.bottom}`)
-    .attr('style', `max-width: ${width + margin.left + margin.right};`)
+    .attr('style', `max-width: ${width + margin.left + margin.right}px;`)
     // .attr("width", width + margin.left+ margin.right)
     // .attr("height", height + margin.top + margin.bottom)
     .append("g")
