@@ -491,7 +491,7 @@ function create_heatmap(group, tileset) {
       .attr('class', 'group_label');
   }
   // paint graph
-  bacteria_angles.map(d => {
+  bacteria_angles.map((d, idx) => {
     const species = d.data;
     const piece = svg.append('g')
       .attr('id', `${species}_sector`)
@@ -504,8 +504,8 @@ function create_heatmap(group, tileset) {
 
     // paint legend for species
     piece.append('text')
-       .attr('class', 'species_label')
-       .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90 < 90 ? rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90  : rad2dgr(d3.mean([d.startAngle, d.endAngle])) + 90})`)
+      .attr('class', 'species_label')
+      .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90 < 90 ? rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90  : rad2dgr(d3.mean([d.startAngle, d.endAngle])) + 90})`)
       .attr('alignment-baseline', 'middle')
       .attr('text-anchor', (rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90 < 90 ? 'end': 'start'))
       .text(species)
@@ -513,14 +513,18 @@ function create_heatmap(group, tileset) {
 
     // paint heatmap tiles for species
     group.categories.map(cat => {
-      piece.append('path')
-         .attr('fill', d3.interpolateViridis(cat[tileset][species]))
-         .attr('d', cat.ring(d))
-         .attr('class', 'heatmap_tile')
-         .on('click', () => updateHist(species)) //function(m) {return updateHist(this.parentNode, species)})
-         .append('title')
-         .text(`${cat.name} (${cat.sample_size} Samples)`);
-
+      window.setTimeout(
+        () => {
+          piece.append('path')
+             .attr('fill', d3.interpolateViridis(cat[tileset][species]))
+             .attr('d', cat.ring(d))
+             .attr('class', 'heatmap_tile')
+             .on('click', () => updateHist(species)) //function(m) {return updateHist(this.parentNode, species)})
+             .append('title')
+             .text(`${cat.name} (${cat.sample_size} Samples)`);
+        },
+        idx * 5
+      );
     });
   });
 }
