@@ -241,12 +241,13 @@ function preprocess_groups(group_names) {
 // #### graph prerequisites ####
 // prepare canvas
 const svg = d3.select('#heat_wheel')
-  .attr('width', SVG_Y)
-  .attr('height', SVG_X)
+  .attr('style', `max-width: ${SVG_X}px;`)
+  // .attr('height', SVG_X)
+  .attr('viewBox', `0 0 ${SVG_X} ${SVG_Y}`)
   .attr('text-anchor', 'end') // right-align text fields
   .attr('font-family', 'sans-serif')
   .append('g')
-  .attr('transform', `translate(${SVG_Y / 2},${SVG_X / 2})`); // start drawing from the middle
+  .attr('transform', `translate(${SVG_X / 2},${SVG_Y / 2})`); // start drawing from the middle
 
 // helper function for rotating text
 function rad2dgr(radians) {
@@ -266,7 +267,8 @@ const outer_circle = d3.arc()
 // prepare for histograms
 let svg_hist_width = 2 * (HIST_X + 1.75*HIST_MAR_X)
 const svg_hist = d3.select('#histograms')
-  .attr('width', svg_hist_width)
+  // .attr('width', svg_hist_width)
+  .attr('style', `max-width: ${svg_hist_width}px;`)
   .attr("class", "histsbg");
 svg_hist.append("text")
   .attr("id", "histtitle")
@@ -303,7 +305,8 @@ function drawHist() {
     reversed_data = [...GROUP.categories].reverse() // reverse data to match order in heatwheel
     height = HIST_MAR_Y + (cat_count/2).toFixed()*(HIST_Y + HIST_MAR_Y);
     let hist = svg_hist
-      .attr('height', height)
+      .attr('viewBox', `0 0 ${svg_hist_width} ${height}`)
+      // .attr('height', height)
       .selectAll(".hist_group")
       .data(reversed_data);
     hist.exit().remove();
