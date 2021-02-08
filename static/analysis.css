@@ -99,7 +99,7 @@
 }
 
 .bar {
-/*    stroke: black;*/
+    stroke: black;
     /* fill: #be013c; */
     visibility: hidden;
 }
