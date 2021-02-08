@@ -126,12 +126,14 @@ function drawGraph(xAttr, colorAttr) {
 
     console.log(countMap)
 
-    let colorKeys = new Set()
+    let colorKeys =new Set()
     countMap.forEach(function(value, key){
         Array
         .from(value.keys())
         .forEach(value => colorKeys.add(value))
     })
+    console.log(colorKeys)
+    console.log(Array.from(countMap.keys()))
 
     // convert map to array of objects of length 1
     // key: name on x-Axis, value: stacks for bar as map
@@ -153,8 +155,10 @@ function drawGraph(xAttr, colorAttr) {
     // d3.stack automatically defines position for different items to be stacked
     // on top of each other
     let stack = d3.stack()
-        .keys(colorKeys)
+        .keys(new Set(colorKeys))
         .value(function(d, key) {
+            //console.log(key)
+            //console.log(d[key])
             if (d[key] == null){ // if one group has no values for a bar color, e.g. no "unkowns"
                 return 0 // return 0 instead of NaN to avoid parsing warnings (no stack is created either way)
             }
@@ -164,6 +168,8 @@ function drawGraph(xAttr, colorAttr) {
         })
         .order(d3.stackOrderNone)
         .offset(d3.stackOffsetNone);
+
+        console.log(new Set(colorKeys))
 
     // console.log(stack(flatCountArray));
 
@@ -279,7 +285,7 @@ function drawGraph(xAttr, colorAttr) {
 
     //http://bl.ocks.org/gencay/4629518
     let legend = svg.selectAll("legend.colors")
-        .data(Array.from(colorKeys).reverse()) //reverse(): consistent order of colors in legend and bars
+        .data(Array.from(colorKeys).reverse()) //.sort((a, b) => (a > b) ? 1 : -1)) //reverse(): consistent order of colors in legend and bars
         .enter()
         .append("g")
         .attr("class", "legend")
@@ -305,7 +311,7 @@ function drawGraph(xAttr, colorAttr) {
         .enter()
         .append("text")
         .attr("class", "title")
-        .text(colorAttr.replace("_", " "))
+        .text(colorAttr.replace("_", " ").replace("_", " "))
         .attr("x", width + 20)
         .attr("y", 0)
         .style("text-anchor", "end")
