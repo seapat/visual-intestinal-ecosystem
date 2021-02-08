@@ -42,8 +42,8 @@ console.log(dataset);
 
 //both can take the form of "Nationality", "Sex", "Age_group", "BMI_group", "Diversity_group"
 //define defaults
-var xAttr = "Nationality"
-var colorAttr = "Age_group"
+var xAttr = "BMI_group"
+var colorAttr = "BMI_group"
 
 //draw initial graph with defaults
 drawGraph(xAttr, colorAttr);
@@ -214,19 +214,9 @@ function drawGraph(xAttr, colorAttr) {
     // DRAW BARS //
 
         // color palette = one color per subgroup
-        let color = d3.scaleOrdinal()
-            //.domain(colorKeys ) //keys from first entry in Counts
-            .range(d3.schemeTableau10) //for reference: https://github.com/d3/d3-scale-chromatic/tree/v2.0.0#categorical
-            // .range(function(d) {
-            //     if (xAttr == colorAttr){
-            //         console.log("reached")
-            //         return ["blue"]
-            //     }
-            //     else {
-            //         return Array.from(d3.schemeTableau10)
-            //     }
-            //  }
-            // )
+        let color = identicalVars ? () => "#4e79a7" : d3.scaleOrdinal().range(d3.schemeTableau10)
+        
+            //.domain(colorKeys) //keys from first entry in Counts
 
         // add stacks to graph
         svg.append('g')
