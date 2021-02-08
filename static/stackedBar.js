@@ -11,8 +11,6 @@ let svg = d3.select("#stacked_bar")
     .append('svg')
     .attr('viewBox', `0 0 ${width + margin.left+ margin.right} ${height + margin.top + margin.bottom}`)
     .attr('style', `max-width: ${width + margin.left + margin.right}px;`)
-    // .attr("width", width + margin.left+ margin.right)
-    // .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
@@ -44,8 +42,8 @@ console.log(dataset);
 
 //both can take the form of "Nationality", "Sex", "Age_group", "BMI_group", "Diversity_group"
 //define defaults
-var xAttr = "Nationality"
-var colorAttr = "Age_group"
+var xAttr = "BMI_group"
+var colorAttr = "BMI_group"
 
 //draw initial graph with defaults
 drawGraph(xAttr, colorAttr);
@@ -58,22 +56,23 @@ colorOption.selectAll("option")
     .data(options)
     .enter()
     .append("option")
-    .html(function(d) {return d.replace("_", " ");})
+    .html(function(d) {return d.replace("_", " ").replace("_", " ");})
 
 const xOption = d3.select('#x_axis');
 xOption.selectAll("option")
     .data(options)
     .enter()
     .append("option")
-    .html(function(d) {return d.replace("_", " ");})
+    .html(function(d) {return d.replace("_", " ").replace("_", " ");})
 
 const content = d3.select('#content');
 content.on('change', function(event) {
     if (event.target.id == "x_axis") {
-        xAttr = event.target.value.replace(" ", "_")
-    }
+        xAttr = event.target.value.replace(" ", "_").replace(" ", "_")
+    } 
+
     else if (event.target.id == "colors"){
-        colorAttr = event.target.value.replace(" ", "_")
+        colorAttr = event.target.value.replace(" ", "_").replace(" ", "_")
     }
     drawGraph(xAttr, colorAttr)
 })
@@ -83,14 +82,20 @@ content.on('change', function(event) {
 // sorting of objects based on the passd attribute, uses array-inidces for custom sorting.
 function customSort(data, attribute) {
 
-    let KeyOrder = [
-        'underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese',
-        'r', 'o', 'p',
-        'Unknown', null, NaN] // put bad values at the end
+    let KeyOrder = 
+    // sort by age, get dsitinct values from Age_group
+    dataset.sort((a, b) => (a.Age > b.Age) ? 1 : -1).map(item => item['Age_group']).filter( (value, index, self) => self.indexOf(value) === index)
+    // sort by Diversity, get Distinct values from Diversity_group
+    .concat(dataset.sort((a, b) => (a.Diversity > b.Diversity) ? 1 : -1).map(item => item['Diversity_group']).filter( (value, index, self) => self.indexOf(value) === index))
+    // implied sorting for catergorical values
+    .concat(['underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese',
+            'r', 'o', 'p',
+            // put 'bad' values at the end)
+            'Unknown', null, NaN]) 
+  
 
     //check if column of first object, holds true for all objects in theory since null-values are handeled
     if (attribute in data[0]) {
-
         //uses the index
         return data.sort( (a, b) => KeyOrder.indexOf(a[attribute]) - KeyOrder.indexOf(b[attribute]));
     }
@@ -101,6 +106,10 @@ function customSort(data, attribute) {
 
 
 function drawGraph(xAttr, colorAttr) {
+
+    const identicalVars = (xAttr === colorAttr)
+    console.log(identicalVars)
+
 
     dataset = customSort(dataset, xAttr)
 
@@ -180,7 +189,6 @@ function drawGraph(xAttr, colorAttr) {
             .attr("x", -20 )
             .attr("y", -20 )
             .text("Subjects")
-            //.style("font-size", 12);
 
     // X AXIS //
 
@@ -202,24 +210,13 @@ function drawGraph(xAttr, colorAttr) {
             .attr("x", width)
             .attr("y", height + 50 )
             .text(xAttr)
-            //.style("font-size", 12);
 
     // DRAW BARS //
 
         // color palette = one color per subgroup
-        let color = d3.scaleOrdinal()
-            //.domain(colorKeys ) //keys from first entry in Counts
-            .range(d3.schemeTableau10) //for reference: https://github.com/d3/d3-scale-chromatic/tree/v2.0.0#categorical
-            // .range(function(d) {
-            //     if (xAttr == colorAttr){
-            //         console.log("reached")
-            //         return ["blue"]
-            //     }
-            //     else {
-            //         return Array.from(d3.schemeTableau10)
-            //     }
-            //  }
-            // )
+        let color = identicalVars ? () => "#4e79a7" : d3.scaleOrdinal().range(d3.schemeTableau10)
+        
+            //.domain(colorKeys) //keys from first entry in Counts
 
         // add stacks to graph
         svg.append('g')
@@ -260,14 +257,6 @@ function drawGraph(xAttr, colorAttr) {
         .style("visibility","hidden");
 
     function whileMouseOver(event,d){
-        // console.log(d); // range of current stack
-        // console.log(d.data); //data of whole bar as object
-        // console.log(d3.pointer(event)); //coords of mous pointer
-
-        // console.log(d3.select(this))  // returns some ??? object
-        // console.log(d3.select(event.currentTarget)); // same as select.this()
-        // console.log(d3.select(event.currentTarget).node()); //returns svg of stack
-        // console.log(event.target.__data)
 
     tooltip
         .style("visibility","visible")
@@ -300,7 +289,6 @@ function drawGraph(xAttr, colorAttr) {
         .attr("x", width)
         .attr("width", 20)
         .attr("height", 20)
-        // .attr("stroke", "grey")
         .style("fill", color);
 
     legend.append("text")
@@ -309,6 +297,8 @@ function drawGraph(xAttr, colorAttr) {
         .attr("dy", ".35em")
         .style("text-anchor", "end")
         .text(function(d) { return d; });
+
+    legend.style( 'visibility', identicalVars ? "hidden" : 'visible')
 
     svg.selectAll("legend.title")
         .data([0]) //empty data to draw only once
@@ -319,4 +309,5 @@ function drawGraph(xAttr, colorAttr) {
         .attr("x", width + 20)
         .attr("y", 0)
         .style("text-anchor", "end")
+        .style( 'visibility', identicalVars ? "hidden" : 'visible')
 };
