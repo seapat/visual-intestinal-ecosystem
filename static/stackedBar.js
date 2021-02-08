@@ -209,7 +209,7 @@ function drawGraph(xAttr, colorAttr) {
             .attr("text-anchor", "end")
             .attr("x", width)
             .attr("y", height + 50 )
-            .text(xAttr)
+            .text(xAttr.replace("_", " ").replace("_", ""))
 
     // DRAW BARS //
 
