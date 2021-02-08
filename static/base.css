@@ -67,3 +67,23 @@ ul.nav {
 .nav > li a:hover{
   background-color: #ddd;
 }
+
+.nav > li button {
+  font-family: 'Lora', serif;;
+  display: block;
+  background-color:  #f3f3f3;
+  color: #666;
+  border: none;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-weight: 200;
+  font-size: 1em; 
+}
+
+.nav > li button:hover{
+  background-color: #ddd;
+  cursor: pointer;
+}
+
+
