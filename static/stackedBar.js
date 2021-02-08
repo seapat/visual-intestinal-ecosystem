@@ -35,7 +35,7 @@ function generate_options(data, field, amount) {
 // create distinct options for both non-categorical values in the table
 generate_options(dataset, 'Age', 4);
 generate_options(dataset, 'Diversity', 4);
-console.log(dataset);
+//console.log(dataset);
 
 
 // INPUT Handling //
@@ -108,7 +108,7 @@ function customSort(data, attribute) {
 function drawGraph(xAttr, colorAttr) {
 
     const identicalVars = (xAttr === colorAttr)
-    console.log(identicalVars)
+//    console.log(identicalVars)
 
 
     dataset = customSort(dataset, xAttr)
@@ -124,7 +124,7 @@ function drawGraph(xAttr, colorAttr) {
         key => (key[xAttr] == null) ? "Unknown" : key[xAttr],
         key => (key[colorAttr] == null) ? "Unknown" : key[colorAttr]);
 
-    console.log(countMap)
+//    console.log(countMap)
 
     let colorKeys =new Set()
     countMap.forEach(function(value, key){
@@ -228,7 +228,6 @@ function drawGraph(xAttr, colorAttr) {
         svg.append('g')
             .selectAll("g")
             .data(stack(flatCountArray))
-
             .enter().append("g")
                 .attr("fill", function(d) { return color(d.key); })
                 .selectAll("rect")
@@ -238,19 +237,20 @@ function drawGraph(xAttr, colorAttr) {
                     // .attr("class",  function(d) {  //map 'svg elements' to classes
                     //     return "bin " + d[0];}) // returns names of X attribute
                     .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis
-                    .attr("y", function (d) { return yScale(d[1]); } ) // d[1] denotes end postion of stack
+                    .attr("y", function (d) { return yScale(0); } ) // d[1] denotes end postion of stack
+                    .attr("height", 0)
 
                     .attr("width", xScale.bandwidth())
                     .on("mousemove",(event,d) => {whileMouseOver(event,d)})
                     .on("mouseout",(event,d)  => {whileMouseOut(event,d)})
                     .style("opacity", "0.8")
                     .attr("stroke", "grey")
-
-                    .data(function(d) { return d; })
-                        .transition()
-                        .duration(400)
-                        .ease(d3.easeLinear)
-                        .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
+                    .transition()
+                    .duration(400)
+                    .ease(d3.easeLinear)
+//                    .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis
+                    .attr("y", function (d) { return yScale(d[1]); } ) // d[1] denotes end postion of stack
+                    .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
 
     // TOOLTIP //
 

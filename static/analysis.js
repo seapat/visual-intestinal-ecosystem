@@ -380,35 +380,6 @@ function updateHist(species) {
       return x => Math.exp(-Math.pow(x, 2)/(2*Math.pow(length_scale, 2)))*100;
     }
 
-    // create bars
-    let create_hist = d3.histogram()
-        .value(d => d)
-        .domain(scaleX.domain())
-        .thresholds(10);
-    let bars = HIST.data(group_data)
-        .selectAll(".bar")
-        .data(function(d, i) {
-            let bins = create_hist(d.data);
-            bins.map(b => b["total"] = d3.sum(bins, b => b.length))
-            bins.map(b => b["heatmap_val"] = d.heatmap_val);
-            return bins;
-        });
-    bars.enter().append("rect")
-      .attr('class', 'bar')
-//    .attr("fill", d => d3.interpolateViridis(d.x0))
-      .attr("x", d => scaleX(d.x0) + 2)
-      .attr("y", d => {return HIST_Y})
-      .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
-      .attr("height", 0)
-      .merge(bars)
-      .transition()
-      .duration(500)
-      .attr("x", d => scaleX(d.x0) + 2)
-      .attr("y", function(d) {return scaleY(d.length/d.total*100)})
-      .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
-      .attr("height", d => HIST_Y - scaleY(d.length/d.total*100))
-      .attr("fill", d => d3.interpolateViridis(d.heatmap_val));
-
     // create density plot (area and line)
     let line = d3.line()
       .curve(d3.curveBasis);
@@ -444,6 +415,36 @@ function updateHist(species) {
         .duration(500)
         .attr('d', d => line(d.data))
         .attr('stroke', d => d3.interpolateViridis(d.heatmap_val));
+    
+    // create bars
+    let create_hist = d3.histogram()
+        .value(d => d)
+        .domain(scaleX.domain())
+        .thresholds(10);
+    let bars = HIST.data(group_data)
+        .selectAll(".bar")
+        .data(function(d, i) {
+            let bins = create_hist(d.data);
+            bins.map(b => b["total"] = d3.sum(bins, b => b.length))
+            bins.map(b => b["heatmap_val"] = d.heatmap_val);
+            return bins;
+        });
+    bars.enter().append("rect")
+      .attr('class', 'bar')
+//    .attr("fill", d => d3.interpolateViridis(d.x0))
+      .attr("x", d => scaleX(d.x0) + 2)
+      .attr("y", d => {return HIST_Y})
+      .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
+      .attr("height", 0)
+      .merge(bars)
+      .transition()
+      .duration(500)
+      .attr("x", d => scaleX(d.x0) + 2)
+      .attr("y", function(d) {return scaleY(d.length/d.total*100)})
+      .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
+      .attr("height", d => HIST_Y - scaleY(d.length/d.total*100))
+      .attr("fill", d => d3.interpolateViridis(d.heatmap_val));
+
 };
 
 // ##### graph creator ####
