@@ -251,13 +251,18 @@ function drawGraph(xAttr, colorAttr) {
 
     function whileMouseOver(event,d){
 
+        delete d.data['null']
+
     tooltip
         .style("visibility","visible")
         //d.data returns the values of the bar as a object
-        .html(JSON.stringify(d.data) //write to string and format using regex & replace()
+        
+        .html(JSON.stringify(d.data)
+            //write to string and format using regex & replace()
             .replace(/,/g , "<br>")
             .replace(/{|}|"/g, "")
             .replace(/:/g, ": ")
+
             )
         .style('left', event.pageX + 25 + 'px')
         .style('top', event.pageY - 20 + 'px');
@@ -269,6 +274,8 @@ function drawGraph(xAttr, colorAttr) {
     }
 
     // LEGEND //
+
+    console.log(stack(flatCountArray))
 
     //http://bl.ocks.org/gencay/4629518
     let legend = svg.selectAll("legend.colors")
