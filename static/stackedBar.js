@@ -1,5 +1,7 @@
 //Sean Klein 5575709
 
+console.log(dataset)
+
 // DIMENSIONS //
 
 let margin = {top: 40, right: 30, bottom: 65, left: 50},
@@ -36,7 +38,6 @@ function generate_options(data, field, amount) {
 generate_options(dataset, 'Age', 4);
 generate_options(dataset, 'Diversity', 4);
 //console.log(dataset);
-
 
 // INPUT Handling //
 
@@ -77,85 +78,78 @@ content.on('change', function(event) {
     drawGraph(xAttr, colorAttr)
 })
 
-
-
 // sorting of objects based on the passd attribute, uses array-inidces for custom sorting.
-function customSort(data, attribute) {
+function customSort(data=dataset, attribute) {
 
     let KeyOrder = 
-    // sort by age, get dsitinct values from Age_group
-    dataset.sort((a, b) => (a.Age > b.Age) ? 1 : -1).map(item => item['Age_group']).filter( (value, index, self) => self.indexOf(value) === index)
-    // sort by Diversity, get Distinct values from Diversity_group
-    .concat(dataset.sort((a, b) => (a.Diversity > b.Diversity) ? 1 : -1).map(item => item['Diversity_group']).filter( (value, index, self) => self.indexOf(value) === index))
-    // implied sorting for catergorical values
-    .concat(['underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese',
-            'r', 'o', 'p',
-            // put 'bad' values at the end)
-            'Unknown', null, NaN]) 
-  
+        // sort by age, get dsitinct values from Age_group
+        dataset.sort((a, b) => (a.Age > b.Age) ? 1 : -1).map(item => item['Age_group']).filter( (value, index, self) => self.indexOf(value) === index)
+        // sort by Diversity, get Distinct values from Diversity_group
+            .concat(dataset.sort((a, b) => (a.Diversity > b.Diversity) ? 1 : -1).map(item => item['Diversity_group']).filter( (value, index, self) => self.indexOf(value) === index))
+        // implied sorting for catergorical values
+            .concat(['underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese',
+                'r', 'o', 'p',
+                // put 'bad' values at the end)
+                'Unknown', null, NaN]) 
 
     //check if column of first object, holds true for all objects in theory since null-values are handeled
     if (attribute in data[0]) {
         //uses the index
-        return data.sort( (a, b) => KeyOrder.indexOf(a[attribute]) - KeyOrder.indexOf(b[attribute]));
+        return data.sort( (a, b) => KeyOrder.indexOf(a[attribute]) - KeyOrder.indexOf(b[attribute]) || KeyOrder.indexOf(a[colorAttr]) - KeyOrder.indexOf(b[colorAttr]));
     }
     else {
-        return d3.sort(data, (a, b) => d3.ascending(a[attribute], b[attribute]))
+        return data.sort( (a, b) => a[xAttr] - b[xAttr] || a[colorAttr] - b[colorAttr]);
     }
 }
-
 
 function drawGraph(xAttr, colorAttr) {
 
     const identicalVars = (xAttr === colorAttr)
-//    console.log(identicalVars)
-
-
     dataset = customSort(dataset, xAttr)
-
     svg.html('');
 
     // VARIABLES //
 
+    // get array of values for color Attributes
+    let colorKeys = customSort(dataset, colorAttr)
+    .map(obj => obj[colorAttr]).filter(item => item != null)
+    .filter( (value, index, self) => self.indexOf(value) === index)
+    
     // create map with nested maps
     // keys: X-Axis, values: maps of stacks: key-value
     let countMap = d3.rollup(dataset,
         v => v.length,
-        key => (key[xAttr] == null) ? "Unknown" : key[xAttr],
-        key => (key[colorAttr] == null) ? "Unknown" : key[colorAttr]);
-
-//    console.log(countMap)
-
-    let colorKeys =new Set()
-    countMap.forEach(function(value, key){
-        Array
-        .from(value.keys())
-        .forEach(value => colorKeys.add(value))
-    })
-    console.log(colorKeys)
-    console.log(Array.from(countMap.keys()))
-
+        key => key[xAttr], //(key[xAttr] == null) ? "Unknown" : 
+        key => key[colorAttr]); //(key[colorAttr] == null) ? "Unknown" : 
+    
+    // temporarily create array to use filter
+    countMap = new Map(
+        [...countMap]
+        .filter(([k, v]) => k != null ))
+        
+    console.log(countMap)
+    
     // convert map to array of objects of length 1
     // key: name on x-Axis, value: stacks for bar as map
     let countArray = Array.from(countMap, ([key, value]) => ({key, value}));
+    console.log(countArray)
 
     //https://stackoverflow.com/a/44444443/14276346
     //Loop through the nested array and create a new array element that converts each individual nested element into a key/value pair in a single object.
-    var flatCountArray = [];
+    let flatCountArray = [];
     countArray.forEach(function(d) {
-    var obj = { Group: d.key } //old key -> value of 'Group'
+    let obj = { Group: d.key } //old key -> value of 'Group'
         d.value.forEach(function(value, key) { //append key value pairs that were previously inside nested maps
             obj[key] = value;
         });
     flatCountArray.push(obj);
     });
-
-    // console.log(Array.from(flatCountArray, obj => obj.Group))
+    console.log(flatCountArray)
 
     // d3.stack automatically defines position for different items to be stacked
     // on top of each other
     let stack = d3.stack()
-        .keys(new Set(colorKeys))
+        .keys(colorKeys)
         .value(function(d, key) {
             //console.log(key)
             //console.log(d[key])
@@ -166,12 +160,8 @@ function drawGraph(xAttr, colorAttr) {
                 return d[key]; //key is each type of occurence of bar-attribute
             }
         })
-        .order(d3.stackOrderNone)
+        .order(d3.stackOrderReverse)
         .offset(d3.stackOffsetNone);
-
-        console.log(new Set(colorKeys))
-
-    // console.log(stack(flatCountArray));
 
     // Y AXIS //
 
@@ -180,7 +170,7 @@ function drawGraph(xAttr, colorAttr) {
             .domain([0, d3.max( //find max
                 d3.rollup(dataset, //get counts as map-values
                 value => value.length, //count occurences, output as map
-                key => (key[xAttr] == null) ? "Unknown" : key[xAttr]) // replace null by unkown
+                key => key[xAttr]) // (key[xAttr] == null) ? "Unknown" : 
                 .values()) ]) //iterate over value
             .range([ height, 0]);
 
@@ -221,8 +211,6 @@ function drawGraph(xAttr, colorAttr) {
 
         // color palette = one color per subgroup
         let color = identicalVars ? () => "#4e79a7" : d3.scaleOrdinal().range(d3.schemeTableau10)
-        
-            //.domain(colorKeys) //keys from first entry in Counts
 
         // add stacks to graph
         svg.append('g')
@@ -236,7 +224,7 @@ function drawGraph(xAttr, colorAttr) {
                 .append("rect")
                     // .attr("class",  function(d) {  //map 'svg elements' to classes
                     //     return "bin " + d[0];}) // returns names of X attribute
-                    .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis
+                    .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis 
                     .attr("y", function (d) { return yScale(0); } ) // d[1] denotes end postion of stack
                     .attr("height", 0)
 
@@ -246,11 +234,10 @@ function drawGraph(xAttr, colorAttr) {
                     .style("opacity", "0.8")
                     .attr("stroke", "grey")
                     .transition()
-                    .duration(400)
-                    .ease(d3.easeLinear)
-//                    .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis
-                    .attr("y", function (d) { return yScale(d[1]); } ) // d[1] denotes end postion of stack
-                    .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
+                        .duration(400)
+                        .ease(d3.easeLinear)
+                        .attr("y", function (d) { return yScale(d[1]); } ) // d[1] denotes end postion of stack
+                        .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
 
     // TOOLTIP //
 
@@ -285,7 +272,7 @@ function drawGraph(xAttr, colorAttr) {
 
     //http://bl.ocks.org/gencay/4629518
     let legend = svg.selectAll("legend.colors")
-        .data(Array.from(colorKeys).reverse()) //.sort((a, b) => (a > b) ? 1 : -1)) //reverse(): consistent order of colors in legend and bars
+        .data(colorKeys)
         .enter()
         .append("g")
         .attr("class", "legend")
