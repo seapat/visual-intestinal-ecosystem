@@ -70,13 +70,9 @@ xOption.selectAll("option")
 const content = d3.select('#content');
 content.on('change', function(event) {
     if (event.target.id == "x_axis") {
-<<<<<<< HEAD
         xAttr = event.target.value.replace(" ", "_").replace(" ", "_")
     } 
-=======
-        xAttr = event.target.value.replace(" ", "_")
-    }
->>>>>>> 6fa06b9db28e335117622e1889760e4454da4413
+
     else if (event.target.id == "colors"){
         colorAttr = event.target.value.replace(" ", "_").replace(" ", "_")
     }
