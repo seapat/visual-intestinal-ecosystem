@@ -2,23 +2,26 @@
 // const SPECIES = {{ species | safe }};
 
 // #### drawing constants ####
+// heatmap
 const INNER_RADIUS = 350;
 const RING_RADIUS = 70;
 const RING_PADDING = 1;
 const PAD_ANGLE = 0.005;
-const Y_PADDING = 50;
-const X_PADDING = 10;
-const SVG_X = (INNER_RADIUS + RING_RADIUS + X_PADDING) * 2;
-const SVG_Y = (INNER_RADIUS + RING_RADIUS + Y_PADDING) * 2;
+const PAD_WIDTH = 50;
+const PAD_HEIGHT = 10;
+const HEATMAP_HEIGHT = (INNER_RADIUS + RING_RADIUS + PAD_HEIGHT) * 2;
+const HEATMAP_WIDTH = (INNER_RADIUS + RING_RADIUS + PAD_WIDTH) * 2;
+
+const LEGEND_TILE_WIDTH = 20;
+const LEGEND_TILE_HEIGHT = 10;
+const LEGEND_TILE_PADDING = 5;
+
+// histograms
 const HIST_X = 200;
 const HIST_Y = 200;
 const HIST_MAR_X = 60;
 const HIST_MAR_Y = 80;
 
-// color legend
-const LEGEND_TILE_WIDTH = 20;
-const LEGEND_TILE_HEIGHT = 10;
-const LEGEND_TILE_PADDING = 5;
 
 
 // data
@@ -45,7 +48,7 @@ const REFERENCE_MEAN_OPTIONS = [
   }
 ];
 
-// ####  global vars: dropdown choices and clicked tiles
+// ####  global vars: dropdown choices and clicked tiles #####
 let TILESET = REFERENCE_MEAN_OPTIONS[0].tileset;
 let GROUP = GROUPS[0];
 let SELECTED = null;
@@ -241,13 +244,13 @@ function preprocess_groups(group_names) {
 // #### graph prerequisites ####
 // prepare canvas
 const svg = d3.select('#heat_wheel')
-  .attr('style', `max-width: ${SVG_X}px;`)
-  // .attr('height', SVG_X)
-  .attr('viewBox', `0 0 ${SVG_X} ${SVG_Y}`)
+  .attr('style', `max-width: ${HEATMAP_WIDTH}px;`)
+  // .attr('height', HEATMAP_HEIGHT)
+  .attr('viewBox', `0 0 ${HEATMAP_WIDTH} ${HEATMAP_HEIGHT}`)
   .attr('text-anchor', 'end') // right-align text fields
   .attr('font-family', 'sans-serif')
   .append('g')
-  .attr('transform', `translate(${SVG_X / 2},${SVG_Y / 2})`); // start drawing from the middle
+  .attr('transform', `translate(${HEATMAP_WIDTH / 2},${HEATMAP_HEIGHT / 2})`); // start drawing from the middle
 
 // helper function for rotating text
 function rad2dgr(radians) {
@@ -415,7 +418,7 @@ function updateHist(species) {
         .duration(500)
         .attr('d', d => line(d.data))
         .attr('stroke', d => d3.interpolateViridis(d.heatmap_val));
-    
+
     // create bars
     let create_hist = d3.histogram()
         .value(d => d)
@@ -459,6 +462,10 @@ function create_heatmap(group, tileset) {
 
   // paint ring legend
   group.categories.map(c => {
+    // o ---> y
+    // |
+    // |
+    // v x
     svg.append('line')
       .attr('y1', - c.startRadius)
       .attr('y2', - c.startRadius)
