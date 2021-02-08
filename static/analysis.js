@@ -21,8 +21,6 @@ const LEGEND_TILE_HEIGHT = 10;
 const LEGEND_TILE_PADDING = 5;
 
 
-
-
 // data
 generate_groups(DATA, 'Age', 4);
 generate_groups(DATA, 'Diversity', 4);
@@ -33,11 +31,17 @@ const GROUPS = preprocess_groups(
 // reference mean
 const REFERENCE_MEAN_OPTIONS = [
   {
-    name:'species mean (comp. to group avg.)',
+    name:'species mean',
     tileset:'species_difference'
   }, {
-    name: 'group mean (comp. to species avg.)',
+    name:'species mean (comp. to group avg.)',
+    tileset:'species_difference_ga'
+  }, {
+    name: 'group mean',
     tileset: 'group_difference'
+  }, {
+    name: 'group mean (comp. to species avg.)',
+    tileset: 'group_difference_sa'
   }
 ];
 
@@ -55,9 +59,9 @@ GROUPS.map(g =>
 );
 grouping_choice.on('change', event => {
   GROUP = GROUPS.filter(g => g.name == event.target.value)[0];
-  paint_group(GROUP, TILESET);
+  create_heatmap(GROUP, TILESET);
   HIST = drawHist();
-  if (SELECTED) click_helper(SELECTED.id);
+  if (SELECTED) updateHist(SELECTED);
 });
 
 // #### dropdown for choosing reference mean
@@ -69,8 +73,8 @@ REFERENCE_MEAN_OPTIONS.map(o =>
 );
 reference_mean_choice.on('change', event => {
   TILESET = event.target.value;
-  paint_group(GROUP, TILESET);
-  if (SELECTED) click_helper(SELECTED.id);
+  create_heatmap(GROUP, TILESET);
+  if (SELECTED) updateHist(SELECTED);
 });
 
 
@@ -120,7 +124,7 @@ function generate_tile_rings(categories) {
 
 // unified group preprocessing
 function preprocess_groups(group_names) {
-    
+
   // get an array of objects containing group name and possible values = categories
   const groups = group_names.map(by => make_group(by));
 
@@ -148,10 +152,9 @@ function preprocess_groups(group_names) {
 
     // calculate mean differences per group and species
 
-    // ## difference from species mean compared to group average
-    // mean differences across graph
+    // ## difference from species mean (optionally compared to group average)
+    // array for global normalization and initialization of maps
     const species_differences = [];
-    // initialize map
     group.categories.map(c => c.species_difference = {});
     // loop species, then groups for difference to species mean
     SPECIES.map(s => {
@@ -161,20 +164,25 @@ function preprocess_groups(group_names) {
           grouped_data.get(c.name),
           r => r[s]
         ) - species_mean;
-        // species_differences.push(c.species_difference[s]);
+        species_differences.push(c.species_difference[s]);
       });
     });
+
     // difference to group average
+    // array for global normalization
+    const species_differences_ga = [];
+    // loop groups, difference to avg. group difference
     group.categories.map(c => {
+      c.species_difference_ga = {};
       const group_mean = d3.mean(
         SPECIES.map(s => c.species_difference[s])
       );
       SPECIES.map(s => {
-        c.species_difference[s] = c.species_difference[s] - group_mean;
-        species_differences.push(c.species_difference[s]);
+        c.species_difference_ga[s] = c.species_difference[s] - group_mean;
+        species_differences_ga.push(c.species_difference_ga[s]);
       });
     });
-      
+
     // ## difference from group mean compared to species average
     // mean differences across graph
     const group_differences = [];
@@ -190,15 +198,17 @@ function preprocess_groups(group_names) {
       );
       SPECIES.map(s => {
         c.group_difference[s] = d3.mean(group, r => r[s]) - group_mean;
-        // group_differences.push(c.group_difference[s]);
+        group_differences.push(c.group_difference[s]);
       });
     });
     // difference to species average
+    const group_differences_sa = [];
+    group.categories.map(c => c.group_difference_sa = {});
     SPECIES.map(s => {
       const species_mean = d3.mean(group.categories.map(c => c.group_difference[s]));
       group.categories.map(c => {
-        c.group_difference[s] = c.group_difference[s] - species_mean;
-        group_differences.push(c.group_difference[s]);
+        c.group_difference_sa[s] = c.group_difference[s] - species_mean;
+        group_differences_sa.push(c.group_difference_sa[s]);
       });
     });
 
@@ -219,7 +229,9 @@ function preprocess_groups(group_names) {
       group[tileset] = { scaled_zero: (0 - min_mean)/mean_range };
     }
     normalize_across_graph('species_difference', species_differences);
+    normalize_across_graph('species_difference_ga', species_differences_ga);
     normalize_across_graph('group_difference', group_differences);
+    normalize_across_graph('group_difference_sa', group_differences_sa);
 
 
   });
@@ -229,12 +241,13 @@ function preprocess_groups(group_names) {
 // #### graph prerequisites ####
 // prepare canvas
 const svg = d3.select('#heat_wheel')
-  .attr('width', SVG_Y)
-  .attr('height', SVG_X)
+  .attr('style', `max-width: ${SVG_X}px;`)
+  // .attr('height', SVG_X)
+  .attr('viewBox', `0 0 ${SVG_X} ${SVG_Y}`)
   .attr('text-anchor', 'end') // right-align text fields
   .attr('font-family', 'sans-serif')
   .append('g')
-  .attr('transform', `translate(${SVG_Y / 2},${SVG_X / 2})`); // start drawing from the middle
+  .attr('transform', `translate(${SVG_X / 2},${SVG_Y / 2})`); // start drawing from the middle
 
 // helper function for rotating text
 function rad2dgr(radians) {
@@ -254,88 +267,187 @@ const outer_circle = d3.arc()
 // prepare for histograms
 let svg_hist_width = 2 * (HIST_X + 1.75*HIST_MAR_X)
 const svg_hist = d3.select('#histograms')
-  .attr('width', svg_hist_width).attr("class", "histsbg");
-svg_hist.append("text").attr("id", "histtitle").style("text-anchor", "middle").attr('transform', `translate(${svg_hist_width/2},${30})`);
+  // .attr('width', svg_hist_width)
+  .attr('style', `max-width: ${svg_hist_width}px;`)
+  .attr("class", "histsbg");
+svg_hist.append("text")
+  .attr("id", "histtitle")
+  .style("text-anchor", "middle")
+  .attr('transform', `translate(${svg_hist_width/2},${30})`);
+//var scaleX = d3.scaleLog()
+//            .domain([0.1, 1])
+//            .range([0, HIST_X]).clamp(true);
 var scaleX = d3.scaleLinear()
             .domain([0, 1])
             .range([0, HIST_X]);
+
 var scaleY = d3.scaleLinear()
             .domain([0, 100])
             .range([HIST_Y, 0]);
 let HIST = drawHist();
 
+// show bars if checkbox is activated
+d3.select("#showbars").on("change",show_bars);
 
-// function for drawing histograms (except bars)
+function show_bars() {
+    if (d3.select("#showbars").property("checked")){
+        console.log(HIST.selectAll(".bar"));
+					HIST.selectAll(".bar").style("visibility", "visible");
+				} else {
+					HIST.selectAll(".bar").style("visibility", "hidden");
+				}
+}
+
+
+// function for drawing histograms (except bars/density)
 function drawHist() {
     cat_count = GROUP.categories.length
     reversed_data = [...GROUP.categories].reverse() // reverse data to match order in heatwheel
     height = HIST_MAR_Y + (cat_count/2).toFixed()*(HIST_Y + HIST_MAR_Y);
-    let hist = svg_hist.attr('height', height).selectAll(".hist_group")
-    .data(reversed_data)
+    let hist = svg_hist
+      .attr('viewBox', `0 0 ${svg_hist_width} ${height}`)
+      // .attr('height', height)
+      .selectAll(".hist_group")
+      .data(reversed_data);
     hist.exit().remove();
     let enter = hist.enter()
-        .append("g").attr("class", "hist_group")
-    enter.append("rect").attr("class", "histbg").attr("width", HIST_X).attr("height", HIST_Y)
-    enter.append("text").attr("class", "histlabel").style("text-anchor", "middle").attr('alignment-baseline', 'bottom').attr('transform', `translate(${HIST_X/2},${-5})`);
-    enter.append("text").attr("class", "axislabel").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${-40},${HIST_Y/2})rotate(-90)`).text("Percentage of subjects")
-    enter.append("text").attr("class", "axislabel").style("text-anchor", "middle").attr('alignment-baseline', 'middle').attr('transform', `translate(${HIST_X/2},${HIST_Y+30})`).text("Abundance")
-    enter.append("g").attr("class", "yaxis").call(d3.axisLeft(scaleY));
-    enter.append("g").attr("class", "xaxis").attr('transform', `translate(${0},${HIST_Y})`).call(d3.axisBottom(scaleX));
+      .append("g")
+      .attr("class", "hist_group");
+    enter.append("rect")
+      .attr("class", "histbg")
+      .attr("width", HIST_X)
+      .attr("height", HIST_Y);
+    enter.append("text")
+      .attr("class", "histlabel")
+      .style("text-anchor", "middle")
+      .attr('alignment-baseline', 'bottom')
+      .attr('transform', `translate(${HIST_X/2},${-5})`);
+    enter.append("text")
+      .attr("class", "axislabel")
+      .style("text-anchor", "middle")
+      .attr('alignment-baseline', 'middle')
+      .attr('transform', `translate(${-40},${HIST_Y/2})rotate(-90)`)
+      .text("Percentage of subjects");
+    enter.append("text")
+      .attr("class", "axislabel")
+      .style("text-anchor", "middle")
+      .attr('alignment-baseline', 'middle')
+      .attr('transform', `translate(${HIST_X/2},${HIST_Y+30})`)
+      .text("Abundance");
+    enter.append("g")
+      .attr("class", "yaxis")
+      .call(d3.axisLeft(scaleY));
+    enter.append("g")
+      .attr("class", "xaxis")
+      .attr('transform', `translate(${0},${HIST_Y})`)
+      .call(d3.axisBottom(scaleX));
+//  tickFormat(d => {var log = Math.log(d) / Math.LN10; return Math.abs(Math.round(log) - log) < 1e-6 ? Math.round(log) : ''}));
     hist = hist.merge(enter)
-        .attr('transform', function(d, i) {return `translate(${HIST_MAR_X + (i%2)*(1.5*HIST_MAR_X + HIST_X)},${HIST_MAR_Y + (Math.trunc(i/2))*(HIST_Y + HIST_MAR_Y)})`})
+        .attr('transform', function(d, i) {
+          return `translate(${HIST_MAR_X + (i%2)*(1.5*HIST_MAR_X + HIST_X)},${HIST_MAR_Y + (Math.trunc(i/2))*(HIST_Y + HIST_MAR_Y)})`
+        });
     hist.select(".histlabel").text(function(d){return d.name});
     return hist;
 }
-  
+
 
 // function for drawing bars of histograms
-function onClick(t, species) {
-    SELECTED = t;
-    d3.select(t.parentNode).selectAll("path").style("stroke", "");
-    d3.select(t.parentNode).selectAll("text").style("font-weight", "");
-    d3.select(t).selectAll("path").style("stroke", "black");
-    d3.select(t).selectAll("text").style("font-weight", "bold");
+function updateHist(species) {
+    // mark species in heatmap
+    if (SELECTED) document.getElementById(`${SELECTED}_sector`).classList.remove('selected');
+    SELECTED = species;
+    document.getElementById(`${species}_sector`).classList.add('selected');
+
+    // update histogram
     svg_hist.style("visibility", "visible");
     svg_hist.select("#histtitle").text(species);
     reversed_data = [...GROUP.categories].reverse();
     total_subjects = d3.sum(GROUP.categories, c => c.sample_size);
-    group_data = reversed_data.map(c => DATA.filter(d => d[GROUP.name] == c.name).map(d => d[species]));
+    group_data = reversed_data.map(c => {
+      return {
+        heatmap_val: c[TILESET][species],
+        data: DATA.filter(d => d[GROUP.name] == c.name).map(d => d[species])
+      };
+    });
+
+    thresholds = scaleX.ticks(50);
+
+    function kde(kernel, thresholds, data) {
+      return thresholds.map(t => [scaleX(t), d3.mean(data, d => scaleY(kernel(t - d)))]);
+    }
+
+    function gauss_kernel(length_scale) {
+      return x => Math.exp(-Math.pow(x, 2)/(2*Math.pow(length_scale, 2)))*100;
+    }
+
+    // create bars
     let create_hist = d3.histogram()
-        .value(d => d) 
+        .value(d => d)
         .domain(scaleX.domain())
         .thresholds(10);
     let bars = HIST.data(group_data)
         .selectAll(".bar")
-        .data(function(d, i) { 
-            let bins = create_hist(d);
+        .data(function(d, i) {
+            let bins = create_hist(d.data);
             bins.map(b => b["total"] = d3.sum(bins, b => b.length))
-            return bins; 
-        })
-        bars.enter()
-        .append("rect").attr('class', 'bar')
-//            .attr("fill", d => d3.interpolateViridis(d.x0))
-        .attr("x", d => scaleX(d.x0) + 2)
-        .attr("y", d => {return HIST_Y})
-        .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
-        .attr("height", 0)
-        .merge(bars)
+            bins.map(b => b["heatmap_val"] = d.heatmap_val);
+            return bins;
+        });
+    bars.enter().append("rect")
+      .attr('class', 'bar')
+//    .attr("fill", d => d3.interpolateViridis(d.x0))
+      .attr("x", d => scaleX(d.x0) + 2)
+      .attr("y", d => {return HIST_Y})
+      .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
+      .attr("height", 0)
+      .merge(bars)
+      .transition()
+      .duration(500)
+      .attr("x", d => scaleX(d.x0) + 2)
+      .attr("y", function(d) {return scaleY(d.length/d.total*100)})
+      .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
+      .attr("height", d => HIST_Y - scaleY(d.length/d.total*100))
+      .attr("fill", d => d3.interpolateViridis(d.heatmap_val));
+
+    // create density plot (area and line)
+    let line = d3.line()
+      .curve(d3.curveBasis);
+    let area = d3.area().y0(HIST_Y);
+    let length_scale = 0.05;
+
+
+    let dist_area = HIST.data(group_data)
+        .selectAll(".dist_area")
+        .data(function(d, i) {
+            density = kde(gauss_kernel(length_scale), thresholds, d.data);
+            return [{ heatmap_val: d.heatmap_val, data:density }];
+        });
+    // console.log(dist_area);
+    dist_area.enter()
+        .append('path').attr('class', 'dist_area')
+        .merge(dist_area)
         .transition()
         .duration(500)
-        .attr("x", d => scaleX(d.x0) + 2)
-        .attr("y", function(d) {return scaleY(d.length/d.total*100)})
-        .attr("width", d => {return scaleX(d.x1) - scaleX(d.x0)-4})
-        .attr("height", d => HIST_Y - scaleY(d.length/d.total*100))
-      };
+        .attr('d', d => area(d.data))
+        .attr('fill', d => d3.interpolateViridis(d.heatmap_val));
 
-// helper function to select without clicking on tile
-function click_helper(id) {
-    new_sel = d3.select('#' + id)._groups[0][0];
-    species = d3.select(new_sel).select(".species_label").text()
-    onClick(new_sel, species);
-}
+    let dist = HIST.data(group_data)
+        .selectAll(".dist")
+        .data(function(d, i) {
+            density = kde(gauss_kernel(length_scale), thresholds, d.data)
+            return [{ heatmap_val: d.heatmap_val, data: density }];
+        })
+    dist.enter()
+        .append('path').attr('class', 'dist')
+        .merge(dist)
+        .transition()
+        .duration(500)
+        .attr('d', d => line(d.data))
+        .attr('stroke', d => d3.interpolateViridis(d.heatmap_val));
+};
 
 // ##### graph creator ####
-function paint_group(group, tileset) {
+function create_heatmap(group, tileset) {
   // clear graph
   svg.html('');
 
@@ -371,6 +483,7 @@ function paint_group(group, tileset) {
     {value: group[tileset].scaled_zero + ((1 - group[tileset].scaled_zero) / 2), name: ''},
     {value: 1, name: 'highest'}
   ];
+  steps.reverse();
   for (let i = 0; i < steps.length; i++) {
     const y_pos = (LEGEND_TILE_HEIGHT + LEGEND_TILE_PADDING) * i;
     color_legend.append('rect')
@@ -386,12 +499,11 @@ function paint_group(group, tileset) {
       .text(steps[i].name)
       .attr('class', 'group_label');
   }
-    let id = 0
   // paint graph
-  bacteria_angles.map(d => {
+  bacteria_angles.map((d, idx) => {
     const species = d.data;
     const piece = svg.append('g')
-      .attr('id', function() {id++; return 'ID' + id.toString();})
+      .attr('id', `${species}_sector`)
       .attr('class', 'species_group')
       .on('mouseenter', () => center_label.text(species))
       .on('mouseleave', () => center_label.text(''));
@@ -401,28 +513,31 @@ function paint_group(group, tileset) {
 
     // paint legend for species
     piece.append('text')
-       .attr('class', 'species_label')
-       .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90 < 90 ? rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90  : rad2dgr(d3.mean([d.startAngle, d.endAngle])) + 90})`)
+      .attr('class', 'species_label')
+      .attr('transform', `translate(${outer_circle.centroid(d).join(',')}) rotate(${rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90 < 90 ? rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90  : rad2dgr(d3.mean([d.startAngle, d.endAngle])) + 90})`)
       .attr('alignment-baseline', 'middle')
       .attr('text-anchor', (rad2dgr(d3.mean([d.startAngle, d.endAngle])) - 90 < 90 ? 'end': 'start'))
       .text(species)
-      .on('click', function(m) {return onClick(this.parentNode, species)});
+      .on('click', () => updateHist(species)); //function(m) {return updateHist(this.parentNode, species)});
 
     // paint heatmap tiles for species
     group.categories.map(cat => {
-      piece.append('path')
-         .attr('fill', d3.interpolateViridis(cat[tileset][species]))
-         .attr('d', cat.ring(d))
-         .attr('class', 'heatmap_tile')
-         .on('click', function(m) {return onClick(this.parentNode, species)})
-         .append('title')
-         .text(`${cat.name} (${cat.sample_size} Samples)`);
-         
+      window.setTimeout(
+        () => {
+          piece.append('path')
+             .attr('fill', d3.interpolateViridis(cat[tileset][species]))
+             .attr('d', cat.ring(d))
+             .attr('class', 'heatmap_tile')
+             .on('click', () => updateHist(species)) //function(m) {return updateHist(this.parentNode, species)})
+             .append('title')
+             .text(`${cat.name} (${cat.sample_size} Samples)`);
+        },
+        idx * 5
+      );
     });
   });
 }
 
 // ##### create initial graph ####
-paint_group(GROUP, TILESET);
-click_helper('ID1');
-
+create_heatmap(GROUP, TILESET);
+updateHist(SPECIES[0]);

@@ -9,8 +9,10 @@ let margin = {top: 40, right: 30, bottom: 65, left: 50},
 // create intial svg
 let svg = d3.select("#stacked_bar")
     .append('svg')
-    .attr("width", width + margin.left+ margin.right)
-    .attr("height", height + margin.top + margin.bottom)
+    .attr('viewBox', `0 0 ${width + margin.left+ margin.right} ${height + margin.top + margin.bottom}`)
+    .attr('style', `max-width: ${width + margin.left + margin.right}px;`)
+    // .attr("width", width + margin.left+ margin.right)
+    // .attr("height", height + margin.top + margin.bottom)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
@@ -68,8 +70,13 @@ xOption.selectAll("option")
 const content = d3.select('#content');
 content.on('change', function(event) {
     if (event.target.id == "x_axis") {
+<<<<<<< HEAD
         xAttr = event.target.value.replace(" ", "_").replace(" ", "_")
     } 
+=======
+        xAttr = event.target.value.replace(" ", "_")
+    }
+>>>>>>> 6fa06b9db28e335117622e1889760e4454da4413
     else if (event.target.id == "colors"){
         colorAttr = event.target.value.replace(" ", "_").replace(" ", "_")
     }
@@ -82,14 +89,14 @@ content.on('change', function(event) {
 function customSort(data, attribute) {
 
     let KeyOrder = [
-        'underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese', 
+        'underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese',
         'r', 'o', 'p',
         'Unknown', null, NaN] // put bad values at the end
 
     //check if column of first object, holds true for all objects in theory since null-values are handeled
-    if (attribute in data[0]) { 
+    if (attribute in data[0]) {
 
-        //uses the index 
+        //uses the index
         return data.sort( (a, b) => KeyOrder.indexOf(a[attribute]) - KeyOrder.indexOf(b[attribute]));
     }
     else {
@@ -108,11 +115,11 @@ function drawGraph(xAttr, colorAttr) {
 
     // create map with nested maps
     // keys: X-Axis, values: maps of stacks: key-value
-    let countMap = d3.rollup(dataset, 
-        v => v.length, 
-        key => (key[xAttr] == null) ? "Unknown" : key[xAttr], 
+    let countMap = d3.rollup(dataset,
+        v => v.length,
+        key => (key[xAttr] == null) ? "Unknown" : key[xAttr],
         key => (key[colorAttr] == null) ? "Unknown" : key[colorAttr]);
-        
+
     console.log(countMap)
 
     let colorKeys = new Set()
@@ -132,7 +139,7 @@ function drawGraph(xAttr, colorAttr) {
     countArray.forEach(function(d) {
     var obj = { Group: d.key } //old key -> value of 'Group'
         d.value.forEach(function(value, key) { //append key value pairs that were previously inside nested maps
-            obj[key] = value; 
+            obj[key] = value;
         });
     flatCountArray.push(obj);
     });
@@ -147,9 +154,9 @@ function drawGraph(xAttr, colorAttr) {
             if (d[key] == null){ // if one group has no values for a bar color, e.g. no "unkowns"
                 return 0 // return 0 instead of NaN to avoid parsing warnings (no stack is created either way)
             }
-            else { 
+            else {
                 return d[key]; //key is each type of occurence of bar-attribute
-            } 
+            }
         })
         .order(d3.stackOrderNone)
         .offset(d3.stackOffsetNone);
@@ -181,10 +188,10 @@ function drawGraph(xAttr, colorAttr) {
             //.style("font-size", 12);
 
     // X AXIS //
-        
+
         // x scale
         let xScale = d3.scaleBand()
-            .domain(Array.from(countMap.keys())) 
+            .domain(Array.from(countMap.keys()))
             .range([0, width])
             .padding(0.5);
 
@@ -217,13 +224,13 @@ function drawGraph(xAttr, colorAttr) {
             //         return Array.from(d3.schemeTableau10)
             //     }
             //  }
-            // ) 
-        
+            // )
+
         // add stacks to graph
         svg.append('g')
             .selectAll("g")
             .data(stack(flatCountArray))
-            
+
             .enter().append("g")
                 .attr("fill", function(d) { return color(d.key); })
                 .selectAll("rect")
@@ -232,9 +239,9 @@ function drawGraph(xAttr, colorAttr) {
                 .append("rect")
                     // .attr("class",  function(d) {  //map 'svg elements' to classes
                     //     return "bin " + d[0];}) // returns names of X attribute
-                    .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis 
+                    .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis
                     .attr("y", function (d) { return yScale(d[1]); } ) // d[1] denotes end postion of stack
-                    
+
                     .attr("width", xScale.bandwidth())
                     .on("mousemove",(event,d) => {whileMouseOver(event,d)})
                     .on("mouseout",(event,d)  => {whileMouseOut(event,d)})
@@ -257,7 +264,7 @@ function drawGraph(xAttr, colorAttr) {
         .attr('class', 'tooltip')
         .style("visibility","hidden");
 
-    function whileMouseOver(event,d){ 
+    function whileMouseOver(event,d){
         // console.log(d); // range of current stack
         // console.log(d.data); //data of whole bar as object
         // console.log(d3.pointer(event)); //coords of mous pointer

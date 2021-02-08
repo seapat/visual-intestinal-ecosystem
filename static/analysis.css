@@ -1,0 +1,117 @@
+/* GENERAL LAYOUT */
+
+/* allow grid layout without needing to import bootstrap:
+  see https://hackernoon.com/how-css-grid-beats-bootstrap-85d5881cf163 for deets */
+.wrapper {
+  display: grid;
+  /* grid-template-columns: repeat(12, 1fr);
+  grid-template-rows: 40px 100px 40px; */
+}
+.heatmap {
+  grid-column: span 7;
+}
+
+.histograms {
+  grid-column: 8 / span 5;
+}
+/*
+.heatmap_description {
+  grid-column: 3 / span 8;
+} */
+
+/* histograms below heatmap if screen is too small */
+@media screen and (max-width: 1668px) {
+  .heatmap {
+    grid-row: 1;
+    grid-column: 1 / span 12;
+  }
+  .histograms {
+    grid-row: 2;
+    grid-column: 1 / span 12;
+  }
+  /* .heatmap_description {
+    grid-row: 3;
+    grid-column: 1 / span 12;
+  } */
+}
+
+/* HEAT WHEEL */
+.heatmap_instructions {
+  text-align: center;
+}
+
+.species_label, .group_label {
+  font-size: 10px;
+  color: black;
+}
+
+.species_label:hover, .group_label:hover {
+  font-weight: bold;
+}
+
+.heatmap_tile {
+  stroke: white;
+  stroke-width: 2px;
+}
+
+.heatmap_tile:hover {
+  stroke: black;
+}
+
+/*
+.heatmap_tile:hover ~ .species_label {
+  font-weight: bold;
+}
+*/
+.species_label:hover ~ .heatmap_tile {
+  stroke: black;
+}
+.selected > .heatmap_tile {
+  stroke: black;
+}
+
+.species_group:hover > .species_label {
+  font-weight: bold;
+}
+.selected > .species_label {
+  font-weight: bold;
+}
+
+
+#center_label {
+  text-anchor: middle;
+}
+
+/* HISTOGRAMS */
+.histbg {
+    fill: white;
+}
+
+.histsbg {
+    background: whitesmoke;
+    visibility: hidden;
+    border-style:solid;
+}
+
+.axislabel, .histlabel {
+   font-family: sans-serif;
+   font-size: 12px;
+}
+
+.bar {
+/*    stroke: black;*/
+    /* fill: #be013c; */
+    visibility: hidden;
+}
+
+.dist {
+    /* stroke: #be013c; */
+    fill: none;
+}
+
+.dist_area {
+/*    stroke: #be013c;*/
+    /* fill: #be013c; */
+    stroke-width: 0;
+    opacity: 0.7;
+}
