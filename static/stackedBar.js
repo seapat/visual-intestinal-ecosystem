@@ -1,9 +1,5 @@
 //Sean Klein 5575709
 
-//console.log(dataset)
-
-// DIMENSIONS //
-
 let margin = {top: 40, right: 30, bottom: 65, left: 50},
     width = 1400 - margin.left - margin.right,
     height = 750 - margin.top - margin.bottom;
@@ -15,8 +11,6 @@ let svg = d3.select("#stacked_bar")
     .attr('style', `max-width: ${width + margin.left + margin.right}px;`)
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-
-// FUNCTIONS //
 
 // create distinct options from continuous data and append as extra columns (in place!!!)
 // Florian Kellner 4090126
@@ -242,7 +236,7 @@ function drawGraph(xAttr, colorAttr) {
     legend.style( 'visibility', variablesIdentical ? "hidden" : 'visible')
 
     svg.selectAll("legend.title")
-        .data([0]) //empty data to draw only once
+        .data([0]) //empty data to draw title only once
         .enter()
         .append("text")
         .attr("class", "title")
