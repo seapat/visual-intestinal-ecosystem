@@ -72,82 +72,32 @@ content.on('change', function(event) {
 var xAttr = "BMI_group"
 var colorAttr = "BMI_group"
 
-const KeyOrder = 
-        // sort by age, get dsitinct values from Age_group
-        d3.sort(dataset, a=> a.Age).map(item => item['Age_group']).filter( (value, index, self) => self.indexOf(value) === index)
-        // sort by Diversity, get Distinct values from Diversity_group
-            .concat(d3.sort(dataset, (a, b) => (a.Diversity > b.Diversity) ? 1 : -1).map(item => item['Diversity_group']).filter( (value, index, self) => self.indexOf(value) === index))
-        // implied sorting for catergorical values
-            .concat(['underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese', null, NaN, "BMI_group", "Age_group", "Diversity"])  
-
-    // sorting of objects based on the passd attribute, uses array-inidces for custom sorting.
-    function customSort(data=dataset, attribute) {
-
-        //check if column of first object, holds true for all objects in theory since null-values are handeled
-        if (attribute in KeyOrder) {
-            //uses the index
-            return d3.sort(dataset, (a, b) => KeyOrder.indexOf(a[attribute]) - KeyOrder.indexOf(b[attribute]) || KeyOrder.indexOf(a[colorAttr]) - KeyOrder.indexOf(b[colorAttr]));
-        }
-        else {
-            // return d3.sort(dataset, (a, b) => a[attribute] - b[attribute] || a[colorAttr] - b[colorAttr]);
-            return d3.sort(dataset, a => a[xAttr] || a[colorAttr]);
-        }
-    }
-
 //draw initial graph with defaults
 drawGraph(xAttr, colorAttr);
 
 function drawGraph(xAttr, colorAttr) {
 
     const variablesIdentical = (xAttr === colorAttr)
-    dataset = customSort(dataset, xAttr)
     svg.html('');
-
-    console.log(dataset, "data")
-
-    // VARIABLES //
-
-    // create map with nested maps
-    // keys: X-Axis, values: maps of stacks: key-value
-    let countMap = d3.rollup(dataset,
-        v => v.length,
-        key => key[xAttr], //(key[xAttr] == null) ? "Unknown" : 
-        key => key[colorAttr]); //(key[colorAttr] == null) ? "Unknown" : 
-
-    console.log(countMap, "CountMap")
     
-    // temporarily create array to use filter
-    countMap = new Map(
-        [...countMap]
-        .filter(([k, v]) => k != null ))
-        
-    console.log(countMap, "CountMap2")
+     let KeyOrder = 
+        // sort by age, get dsitinct values from Age_group
+        d3.sort(dataset,(a, b) => (a.Age > b.Age) ? 1 : -1).map(item => item['Age_group']).filter( (value, index, self) => self.indexOf(value) === index)
+        // sort by Diversity, get Distinct values from Diversity_group
+            .concat(d3.sort(dataset, (a, b) => (a.Diversity > b.Diversity) ? 1 : -1).map(item => item['Diversity_group']).filter( (value, index, self) => self.indexOf(value) === index))
+        // implied sorting for catergorical values
+            .concat(['underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese', null, NaN])  
+//     console.log(KeyOrder)
+     
+    let flatCountArray = d3.rollups(dataset.filter(x => x[xAttr] != null && x[colorAttr] != null), v => v.length, f => f[xAttr], f => f[colorAttr])
+        .map(c => {return Object.assign({"Group": c[0]}, ...c[1].sort((a, b) =>  KeyOrder.indexOf(a[0]) > -1 ? KeyOrder.indexOf(a[0])-KeyOrder.indexOf(b[0]) : d3.ascending(a[0], b[0]))
+                                        .map(x => ({[x[0]]: x[1]})))})
+        .sort((a, b) => KeyOrder.indexOf(a.Group) > -1 ? KeyOrder.indexOf(a.Group)-KeyOrder.indexOf(b.Group) : d3.ascending(a.Group, b.Group))
     
-    // convert map to array of objects of length 1
-    // key: name on x-Axis, value: stacks for bar as map
-    let countArray = Array.from(countMap, ([key, value]) => ({key, value}));
-    console.log(countArray, "countArray")
+    let colorKeys = d3.groups(dataset.filter(x => x[colorAttr] != null), f => f[colorAttr]).map(g => g[0]).sort((a, b) =>  KeyOrder.indexOf(a) > -1 ? KeyOrder.indexOf(a)-KeyOrder.indexOf(b) : d3.ascending(a, b))
 
-    //https://stackoverflow.com/a/44444443/14276346
-    //Loop through the nested array and create a new array element that converts each individual nested element into a key/value pair in a single object.
-    let flatCountArray = [];
-    countArray.forEach(function(d) {
-    let obj = { Group: d.key } //old key -> value of 'Group'
-        d.value.forEach(function(value, key) { //append key value pairs that were previously inside nested maps
-            obj[key] = value;
-        });
-    flatCountArray.push(obj);
-    });
-    console.log(flatCountArray, "flatCountArray")
-
-    // get array of values for color Attributes
-    let colorKeys = customSort(dataset, colorAttr)
-        .map(obj => obj[colorAttr]).filter(item => item != null)
-        .filter( (value, index, self) => self.indexOf(value) === index)
-    console.log(colorKeys, "colorKeys")
-
-    // d3.stack automatically defines pixel-position for different items to be stacked
-    // on top of each other
+    let xKeys = flatCountArray.map(c => c.Group)
+    
     let stack = d3.stack()
         .keys(colorKeys)
         // replace null values by 0
@@ -182,7 +132,7 @@ function drawGraph(xAttr, colorAttr) {
 
         // x scale
         let xScale = d3.scaleBand()
-            .domain(Array.from(countMap.keys()))
+            .domain(xKeys)
             .range([0, width])
             .padding(0.5);
 
