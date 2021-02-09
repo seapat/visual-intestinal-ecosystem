@@ -15,7 +15,26 @@ The goal is to visualise the potential impact of different human characteristics
 
 ## Dependencies
 
-- Python
-- Pandas
-- D3.js V6
-- Flask
+- [Python 3](https://www.python.org/)
+- [Pandas](https://pandas.pydata.org/)
+- [D3.js version 6](https://d3js.org/)
+- [Flask](https://flask.palletsprojects.com/en/1.1.x/)
+
+## Starting the development server
+
+In order to be able to start the development server, you need to have Python 3 installed on your system and a working internet connection, so that you can install python packages and the website can load its dependencies (D3.js, Google Fonts, JQuery).
+
+### Installing Python Packages
+`py` is the command line alias for Python on Windows Systems. On debian-based systems, replace with `python3`, on MacOS, the alias is `python`.
+```shell
+py -m pip install flask
+py -m pip install pandas
+py -m pip install numpy
+```
+
+### Running the server
+Inside the project root folder, run
+```shell
+py flaskServer.py
+```
+`Ctrl + C` to stop the server.
