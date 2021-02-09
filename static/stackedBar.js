@@ -83,22 +83,27 @@ function customSort(data=dataset, attribute) {
 
     let KeyOrder = 
         // sort by age, get dsitinct values from Age_group
-        dataset.sort((a, b) => (a.Age > b.Age) ? 1 : -1).map(item => item['Age_group']).filter( (value, index, self) => self.indexOf(value) === index)
+        d3.sort(dataset,(a, b) => (a.Age > b.Age) ? 1 : -1).map(item => item['Age_group']).filter( (value, index, self) => self.indexOf(value) === index)
         // sort by Diversity, get Distinct values from Diversity_group
-            .concat(dataset.sort((a, b) => (a.Diversity > b.Diversity) ? 1 : -1).map(item => item['Diversity_group']).filter( (value, index, self) => self.indexOf(value) === index))
+            .concat(d3.sort(dataset, (a, b) => (a.Diversity > b.Diversity) ? 1 : -1).map(item => item['Diversity_group']).filter( (value, index, self) => self.indexOf(value) === index))
         // implied sorting for catergorical values
-            .concat(['underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese',
-                'r', 'o', 'p',
-                // put 'bad' values at the end)
-                'Unknown', null, NaN]) 
+            .concat(['underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese', null, NaN])  
 
     //check if column of first object, holds true for all objects in theory since null-values are handeled
+    // if (attribute in data[0]) {
+    //     //uses the index
+    //     return d3.sort(dataset, (a, b) => KeyOrder.indexOf(a[attribute]) - KeyOrder.indexOf(b[attribute]) || KeyOrder.indexOf(a[colorAttr]) - KeyOrder.indexOf(b[colorAttr]));
+    // }
+    // else {
+    //     return d3.sort(dataset, (a, b) => a[attribute] - b[attribute] || a[colorAttr] - b[colorAttr]);
+    // }
+
     if (attribute in data[0]) {
         //uses the index
-        return data.sort( (a, b) => KeyOrder.indexOf(a[attribute]) - KeyOrder.indexOf(b[attribute]) || KeyOrder.indexOf(a[colorAttr]) - KeyOrder.indexOf(b[colorAttr]));
+        return d3.sort(dataset, a => KeyOrder.indexOf(a[attribute]) || KeyOrder.indexOf(a[colorAttr]) );
     }
     else {
-        return data.sort( (a, b) => a[xAttr] - b[xAttr] || a[colorAttr] - b[colorAttr]);
+        return d3.sort(dataset, a => a[attribute] || a[colorAttr]);
     }
 }
 
@@ -108,31 +113,31 @@ function drawGraph(xAttr, colorAttr) {
     dataset = customSort(dataset, xAttr)
     svg.html('');
 
+    console.log(dataset, "data")
+
     // VARIABLES //
 
-    // get array of values for color Attributes
-    let colorKeys = customSort(dataset, colorAttr)
-    .map(obj => obj[colorAttr]).filter(item => item != null)
-    .filter( (value, index, self) => self.indexOf(value) === index)
-    
+
     // create map with nested maps
     // keys: X-Axis, values: maps of stacks: key-value
     let countMap = d3.rollup(dataset,
         v => v.length,
         key => key[xAttr], //(key[xAttr] == null) ? "Unknown" : 
         key => key[colorAttr]); //(key[colorAttr] == null) ? "Unknown" : 
+
+    console.log(countMap, "CountMap")
     
     // temporarily create array to use filter
     countMap = new Map(
         [...countMap]
         .filter(([k, v]) => k != null ))
         
-    console.log(countMap)
+    console.log(countMap, "CountMap2")
     
     // convert map to array of objects of length 1
     // key: name on x-Axis, value: stacks for bar as map
     let countArray = Array.from(countMap, ([key, value]) => ({key, value}));
-    console.log(countArray)
+    console.log(countArray, "countArray")
 
     //https://stackoverflow.com/a/44444443/14276346
     //Loop through the nested array and create a new array element that converts each individual nested element into a key/value pair in a single object.
@@ -144,22 +149,20 @@ function drawGraph(xAttr, colorAttr) {
         });
     flatCountArray.push(obj);
     });
-    console.log(flatCountArray)
+    console.log(flatCountArray, "flatCountArray")
+
+    // get array of values for color Attributes
+    let colorKeys = customSort(dataset, colorAttr)
+        .map(obj => obj[colorAttr]).filter(item => item != null)
+        .filter( (value, index, self) => self.indexOf(value) === index)
+    console.log(colorKeys, "colorKeys")
 
     // d3.stack automatically defines position for different items to be stacked
     // on top of each other
     let stack = d3.stack()
         .keys(colorKeys)
-        .value(function(d, key) {
-            //console.log(key)
-            //console.log(d[key])
-            if (d[key] == null){ // if one group has no values for a bar color, e.g. no "unkowns"
-                return 0 // return 0 instead of NaN to avoid parsing warnings (no stack is created either way)
-            }
-            else {
-                return d[key]; //key is each type of occurence of bar-attribute
-            }
-        })
+        // replace null values by 0
+        .value((d, key) => (d[key] == null) ? 0 : d[key] )
         .order(d3.stackOrderReverse)
         .offset(d3.stackOffsetNone);
 
@@ -209,7 +212,7 @@ function drawGraph(xAttr, colorAttr) {
 
     // DRAW BARS //
 
-        // color palette = one color per subgroup
+        // color palette = one color per subgroup, color value is the same as blue from tableau10
         let color = identicalVars ? () => "#4e79a7" : d3.scaleOrdinal().range(d3.schemeTableau10)
 
         // add stacks to graph
@@ -256,7 +259,6 @@ function drawGraph(xAttr, colorAttr) {
     tooltip
         .style("visibility","visible")
         //d.data returns the values of the bar as a object
-        
         .html(JSON.stringify(d.data)
             //write to string and format using regex & replace()
             .replace(/,/g , "<br>")
