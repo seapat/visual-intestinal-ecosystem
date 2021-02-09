@@ -1,6 +1,6 @@
 //Sean Klein 5575709
 
-console.log(dataset)
+//console.log(dataset)
 
 // DIMENSIONS //
 
@@ -87,14 +87,17 @@ function drawGraph(xAttr, colorAttr) {
             .concat(d3.sort(dataset, (a, b) => (a.Diversity > b.Diversity) ? 1 : -1).map(item => item['Diversity_group']).filter( (value, index, self) => self.indexOf(value) === index))
         // implied sorting for catergorical values
             .concat(['underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese', null, NaN])  
-//     console.log(KeyOrder)
+
      
-    let flatCountArray = d3.rollups(dataset.filter(x => x[xAttr] != null && x[colorAttr] != null), v => v.length, f => f[xAttr], f => f[colorAttr])
+     // .filter(x => x[xAttr] != null && x[colorAttr] != null)
+    let flatCountArray = d3.rollups(dataset, v => v.length, f => f[xAttr], f => f[colorAttr])
         .map(c => {return Object.assign({"Group": c[0]}, ...c[1].sort((a, b) =>  KeyOrder.indexOf(a[0]) > -1 ? KeyOrder.indexOf(a[0])-KeyOrder.indexOf(b[0]) : d3.ascending(a[0], b[0]))
                                         .map(x => ({[x[0]]: x[1]})))})
         .sort((a, b) => KeyOrder.indexOf(a.Group) > -1 ? KeyOrder.indexOf(a.Group)-KeyOrder.indexOf(b.Group) : d3.ascending(a.Group, b.Group))
     
     let colorKeys = d3.groups(dataset.filter(x => x[colorAttr] != null), f => f[colorAttr]).map(g => g[0]).sort((a, b) =>  KeyOrder.indexOf(a) > -1 ? KeyOrder.indexOf(a)-KeyOrder.indexOf(b) : d3.ascending(a, b))
+    
+    flatCountArray = flatCountArray.filter(x => x.Group != null)
 
     let xKeys = flatCountArray.map(c => c.Group)
     
@@ -213,8 +216,6 @@ function drawGraph(xAttr, colorAttr) {
     }
 
     // LEGEND //
-
-    console.log(stack(flatCountArray))
 
     //http://bl.ocks.org/gencay/4629518
     let legend = svg.selectAll("legend.colors")
