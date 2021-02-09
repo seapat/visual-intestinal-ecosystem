@@ -68,7 +68,7 @@ content.on('change', function(event) {
     drawGraph(xAttr, colorAttr)
 })
 
-//define defaults
+//define initial values
 var xAttr = "BMI_group"
 var colorAttr = "BMI_group"
 
@@ -90,19 +90,20 @@ function drawGraph(xAttr, colorAttr) {
 
      
      // .filter(x => x[xAttr] != null && x[colorAttr] != null)
-    let flatCountArray = d3.rollups(dataset, v => v.length, f => f[xAttr], f => f[colorAttr])
+    let barHeights = d3.rollups(dataset, v => v.length, f => f[xAttr], f => f[colorAttr])
         .map(c => {return Object.assign({"Group": c[0]}, ...c[1].sort((a, b) =>  KeyOrder.indexOf(a[0]) > -1 ? KeyOrder.indexOf(a[0])-KeyOrder.indexOf(b[0]) : d3.ascending(a[0], b[0]))
                                         .map(x => ({[x[0]]: x[1]})))})
         .sort((a, b) => KeyOrder.indexOf(a.Group) > -1 ? KeyOrder.indexOf(a.Group)-KeyOrder.indexOf(b.Group) : d3.ascending(a.Group, b.Group))
+        .filter(x => x.Group != null);
     
-    let colorKeys = d3.groups(dataset.filter(x => x[colorAttr] != null), f => f[colorAttr]).map(g => g[0]).sort((a, b) =>  KeyOrder.indexOf(a) > -1 ? KeyOrder.indexOf(a)-KeyOrder.indexOf(b) : d3.ascending(a, b))
-    
-    flatCountArray = flatCountArray.filter(x => x.Group != null)
+    let vertOrder = d3.groups(
+        dataset.filter(x => x[colorAttr] != null), f => f[colorAttr]).map(g => g[0])
+        .sort((a, b) =>  KeyOrder.indexOf(a) > -1 ? KeyOrder.indexOf(a)-KeyOrder.indexOf(b) : d3.ascending(a, b))
 
-    let xKeys = flatCountArray.map(c => c.Group)
+    let horOrder = barHeights.map(c => c.Group);
     
     let stack = d3.stack()
-        .keys(colorKeys)
+        .keys(vertOrder)
         // replace null values by 0
         .value((d, key) => (d[key] == null) ? 0 : d[key] )
         .order(d3.stackOrderReverse)
@@ -135,7 +136,7 @@ function drawGraph(xAttr, colorAttr) {
 
         // x scale
         let xScale = d3.scaleBand()
-            .domain(xKeys)
+            .domain(horOrder)
             .range([0, width])
             .padding(0.5);
 
@@ -160,7 +161,7 @@ function drawGraph(xAttr, colorAttr) {
         // add stacks to graph
         svg.append('g')
             .selectAll("g")
-            .data(stack(flatCountArray))
+            .data(stack(barHeights))
             .enter().append("g")
                 .attr("fill", function(d) { return color(d.key); })
                 .selectAll("rect")
@@ -219,7 +220,7 @@ function drawGraph(xAttr, colorAttr) {
 
     //http://bl.ocks.org/gencay/4629518
     let legend = svg.selectAll("legend.colors")
-        .data(colorKeys)
+        .data(vertOrder)
         .enter()
         .append("g")
         .attr("class", "legend")
