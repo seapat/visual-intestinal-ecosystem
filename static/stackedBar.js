@@ -40,15 +40,6 @@ generate_options(dataset, 'Diversity', 4);
 //console.log(dataset);
 
 // INPUT Handling //
-
-//both can take the form of "Nationality", "Sex", "Age_group", "BMI_group", "Diversity_group"
-//define defaults
-var xAttr = "BMI_group"
-var colorAttr = "BMI_group"
-
-//draw initial graph with defaults
-drawGraph(xAttr, colorAttr);
-
 const options = ['BMI_group', 'Age_group', 'Diversity_group', 'Sex', 'Nationality', 'DNA_extraction_method']
 
 //add options to html
@@ -71,52 +62,50 @@ content.on('change', function(event) {
     if (event.target.id == "x_axis") {
         xAttr = event.target.value.replace(" ", "_").replace(" ", "_")
     } 
-
     else if (event.target.id == "colors"){
         colorAttr = event.target.value.replace(" ", "_").replace(" ", "_")
     }
     drawGraph(xAttr, colorAttr)
 })
 
-// sorting of objects based on the passd attribute, uses array-inidces for custom sorting.
-function customSort(data=dataset, attribute) {
+//define defaults
+var xAttr = "BMI_group"
+var colorAttr = "BMI_group"
 
-    let KeyOrder = 
+const KeyOrder = 
         // sort by age, get dsitinct values from Age_group
-        d3.sort(dataset,(a, b) => (a.Age > b.Age) ? 1 : -1).map(item => item['Age_group']).filter( (value, index, self) => self.indexOf(value) === index)
+        d3.sort(dataset, a=> a.Age).map(item => item['Age_group']).filter( (value, index, self) => self.indexOf(value) === index)
         // sort by Diversity, get Distinct values from Diversity_group
             .concat(d3.sort(dataset, (a, b) => (a.Diversity > b.Diversity) ? 1 : -1).map(item => item['Diversity_group']).filter( (value, index, self) => self.indexOf(value) === index))
         // implied sorting for catergorical values
-            .concat(['underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese', null, NaN])  
+            .concat(['underweight', 'lean', 'overweight', 'obese', 'severeobese', 'morbidobese', null, NaN, "BMI_group", "Age_group", "Diversity"])  
 
-    //check if column of first object, holds true for all objects in theory since null-values are handeled
-    // if (attribute in data[0]) {
-    //     //uses the index
-    //     return d3.sort(dataset, (a, b) => KeyOrder.indexOf(a[attribute]) - KeyOrder.indexOf(b[attribute]) || KeyOrder.indexOf(a[colorAttr]) - KeyOrder.indexOf(b[colorAttr]));
-    // }
-    // else {
-    //     return d3.sort(dataset, (a, b) => a[attribute] - b[attribute] || a[colorAttr] - b[colorAttr]);
-    // }
+    // sorting of objects based on the passd attribute, uses array-inidces for custom sorting.
+    function customSort(data=dataset, attribute) {
 
-    if (attribute in data[0]) {
-        //uses the index
-        return d3.sort(dataset, a => KeyOrder.indexOf(a[attribute]) || KeyOrder.indexOf(a[colorAttr]) );
+        //check if column of first object, holds true for all objects in theory since null-values are handeled
+        if (attribute in KeyOrder) {
+            //uses the index
+            return d3.sort(dataset, (a, b) => KeyOrder.indexOf(a[attribute]) - KeyOrder.indexOf(b[attribute]) || KeyOrder.indexOf(a[colorAttr]) - KeyOrder.indexOf(b[colorAttr]));
+        }
+        else {
+            // return d3.sort(dataset, (a, b) => a[attribute] - b[attribute] || a[colorAttr] - b[colorAttr]);
+            return d3.sort(dataset, a => a[xAttr] || a[colorAttr]);
+        }
     }
-    else {
-        return d3.sort(dataset, a => a[attribute] || a[colorAttr]);
-    }
-}
+
+//draw initial graph with defaults
+drawGraph(xAttr, colorAttr);
 
 function drawGraph(xAttr, colorAttr) {
 
-    const identicalVars = (xAttr === colorAttr)
+    const variablesIdentical = (xAttr === colorAttr)
     dataset = customSort(dataset, xAttr)
     svg.html('');
 
     console.log(dataset, "data")
 
     // VARIABLES //
-
 
     // create map with nested maps
     // keys: X-Axis, values: maps of stacks: key-value
@@ -157,7 +146,7 @@ function drawGraph(xAttr, colorAttr) {
         .filter( (value, index, self) => self.indexOf(value) === index)
     console.log(colorKeys, "colorKeys")
 
-    // d3.stack automatically defines position for different items to be stacked
+    // d3.stack automatically defines pixel-position for different items to be stacked
     // on top of each other
     let stack = d3.stack()
         .keys(colorKeys)
@@ -213,7 +202,7 @@ function drawGraph(xAttr, colorAttr) {
     // DRAW BARS //
 
         // color palette = one color per subgroup, color value is the same as blue from tableau10
-        let color = identicalVars ? () => "#4e79a7" : d3.scaleOrdinal().range(d3.schemeTableau10)
+        let color = variablesIdentical ? () => "#4e79a7" : d3.scaleOrdinal().range(d3.schemeTableau10)
 
         // add stacks to graph
         svg.append('g')
@@ -225,8 +214,6 @@ function drawGraph(xAttr, colorAttr) {
                 .data(function(d) { return d; })
                 .enter()
                 .append("rect")
-                    // .attr("class",  function(d) {  //map 'svg elements' to classes
-                    //     return "bin " + d[0];}) // returns names of X attribute
                     .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis 
                     .attr("y", function (d) { return yScale(0); } ) // d[1] denotes end postion of stack
                     .attr("height", 0)
@@ -300,7 +287,7 @@ function drawGraph(xAttr, colorAttr) {
         .style("text-anchor", "end")
         .text(function(d) { return d; });
 
-    legend.style( 'visibility', identicalVars ? "hidden" : 'visible')
+    legend.style( 'visibility', variablesIdentical ? "hidden" : 'visible')
 
     svg.selectAll("legend.title")
         .data([0]) //empty data to draw only once
@@ -311,5 +298,5 @@ function drawGraph(xAttr, colorAttr) {
         .attr("x", width + 20)
         .attr("y", 0)
         .style("text-anchor", "end")
-        .style( 'visibility', identicalVars ? "hidden" : 'visible')
+        .style( 'visibility', variablesIdentical ? "hidden" : 'visible')
 };
