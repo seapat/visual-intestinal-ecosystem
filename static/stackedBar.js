@@ -66,13 +66,36 @@ content.on('change', function(event) {
 var xAttr = "BMI_group"
 var colorAttr = "BMI_group"
 
+// prepare graph
+// x-scale, axis and label
+let xScale = d3.scaleBand()
+            .range([0, width])
+            .padding(0.5);
+svg.append("g").attr("id", "x_axis_g")
+        .attr("transform", "translate(0," + height + ")")
+svg.append("text").attr("id", "x_label")
+    .attr("text-anchor", "end")
+    .attr("x", width)
+    .attr("y", height + 50 )
+// y-scale, axis and label
+let yScale = d3.scaleLinear()
+            .range([ height, 0]);
+svg.append("g").attr("id", "y_axis_g");
+svg.append("text")
+    .attr("text-anchor", "start")
+    .attr("x", -20 )
+    .attr("y", -20 )
+    .text("Subjects")
+// legend
+svg.append("g").attr("id", "legend").append("text").attr("id", "legend_title").attr("x", width + 20).attr("y", 0).style("text-anchor", "end");
+
 //draw initial graph with defaults
 drawGraph(xAttr, colorAttr);
 
 function drawGraph(xAttr, colorAttr) {
 
     const variablesIdentical = (xAttr === colorAttr)
-    svg.html('');
+//    svg.html('');
     
      let KeyOrder = 
         // sort by age, get dsitinct values from Age_group
@@ -104,79 +127,66 @@ function drawGraph(xAttr, colorAttr) {
         .offset(d3.stackOffsetNone);
 
     // Y AXIS //
-
         // y scale
-        let yScale = d3.scaleLinear()
-            .domain([0, d3.max( //find max
+        yScale.domain([0, d3.max( //find max
                 d3.rollup(dataset, //get counts as map-values
                 value => value.length, //count occurences, output as map
                 key => key[xAttr]) // (key[xAttr] == null) ? "Unknown" : 
-                .values()) ]) //iterate over value
-            .range([ height, 0]);
+                .values()) ]); //iterate over value
 
         // y ticks
-        svg.append("g")
+        svg.select("#y_axis_g")
             .call(d3.axisLeft()
             .scale(yScale));
-
-        // y Axis label
-        svg.append("text")
-            .attr("text-anchor", "start")
-            .attr("x", -20 )
-            .attr("y", -20 )
-            .text("Subjects")
 
     // X AXIS //
 
         // x scale
-        let xScale = d3.scaleBand()
-            .domain(horOrder)
-            .range([0, width])
-            .padding(0.5);
+        xScale.domain(horOrder)
 
         // x ticks
-        svg.append("g")
-        .attr("transform", "translate(0," + height + ")") //put zero to the bottom
-        .call(d3.axisBottom()
+        svg.select("#x_axis_g")
+            .call(d3.axisBottom()
             .scale(xScale));
 
         // x axis label
-        svg.append("text")
-            .attr("text-anchor", "end")
-            .attr("x", width)
-            .attr("y", height + 50 )
+        svg.select("#x_label")
             .text(xAttr.replace("_", " ").replace("_", ""))
 
     // DRAW BARS //
+    
+    let color = variablesIdentical ? () => "#4e79a7" : d3.scaleOrdinal().range(d3.schemeTableau10)
+    let stacks = svg.selectAll(".layer")
+        .data(stack(barHeights))
+    stacks.exit().selectAll(".bar").transition().duration(400).ease(d3.easeLinear).attr("y", yScale(0)).attr("height", 0).remove()
+    stacks = stacks.enter().append("g").attr("class", "layer")
+        .merge(stacks).attr("fill", function(d) { return color(d.key); })
+    
+    let bars = stacks
+        .selectAll(".bar")
+        .data(function(d) { return d; });
+    bars.exit().remove();
+    bars.enter()
+        .append("rect").attr("class", "bar")
+        .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis
+        .attr("y", function (d) { return yScale(0); } ) // d[1] denotes end postion of stack
+        .attr("height", 0)
+        .attr("width", xScale.bandwidth())
+        .on("mousemove",(event,d) => {whileMouseOver(event,d)})
+        .on("mouseout",(event,d)  => {whileMouseOut(event,d)})
+        .style("opacity", "0.8")
+        .attr("stroke", "grey")
+        .merge(bars)
+        .transition()
+        .duration(400)
+        .attr("width", xScale.bandwidth())
+        .ease(d3.easeLinear)
+        .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis
+        .attr("y", function (d) { return yScale(d[1]); } ) // d[1] denotes end postion of stack
+        .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
 
-        // color palette = one color per subgroup, color value is the same as blue from tableau10
-        let color = variablesIdentical ? () => "#4e79a7" : d3.scaleOrdinal().range(d3.schemeTableau10)
 
-        // add stacks to graph
-        svg.append('g')
-            .selectAll("g")
-            .data(stack(barHeights))
-            .enter().append("g")
-                .attr("fill", function(d) { return color(d.key); })
-                .selectAll("rect")
-                .data(function(d) { return d; })
-                .enter()
-                .append("rect")
-                    .attr("x", function (d) { return xScale(d.data.Group);}) // "Group" is acessor of Strings for x-axis 
-                    .attr("y", function (d) { return yScale(0); } ) // d[1] denotes end postion of stack
-                    .attr("height", 0)
-
-                    .attr("width", xScale.bandwidth())
-                    .on("mousemove",(event,d) => {whileMouseOver(event,d)})
-                    .on("mouseout",(event,d)  => {whileMouseOut(event,d)})
-                    .style("opacity", "0.8")
-                    .attr("stroke", "grey")
-                    .transition()
-                        .duration(400)
-                        .ease(d3.easeLinear)
-                        .attr("y", function (d) { return yScale(d[1]); } ) // d[1] denotes end postion of stack
-                        .attr("height", function (d) { return yScale(d[0]) - yScale(d[1]); })
-
+    
     // TOOLTIP //
 
     // helpful: https://stackoverflow.com/a/63693424
@@ -211,38 +221,35 @@ function drawGraph(xAttr, colorAttr) {
     }
 
     // LEGEND //
-
     //http://bl.ocks.org/gencay/4629518
-    let legend = svg.selectAll("legend.colors")
-        .data(vertOrder)
-        .enter()
+    
+     let legend = svg.select("#legend").selectAll(".legend_entry")
+        .data(function() {return vertOrder})
+    legend.exit().remove();
+    let entries = legend.enter()
         .append("g")
-        .attr("class", "legend")
-        .attr("transform", function(d, i) { return "translate(0," + (15 + i * 25) + ")"; });
-
-    legend.append("rect")
+        .attr("class", "legend_entry")
+        .attr("transform", function(d, i) { return "translate(0," + (15 + i * 25) + ")"; })
+        .merge(legend)
+    let rects = entries.selectAll(".legendrect")
+        .data(function(d) {return [d];})
+    rects.enter().append("rect").attr("class", "legendrect")
         .attr("x", width)
         .attr("width", 20)
         .attr("height", 20)
-        .style("fill", color);
-
-    legend.append("text")
+        .merge(rects)
+        .style("fill", d => {return color(d)});
+    let labels = entries.selectAll(".legendlabel")
+        .data(function(d) {return [d];})
+    labels.enter().append("text").attr("class", "legendlabel")
         .attr("x", width - 5 )
         .attr("y", 10)
         .attr("dy", ".35em")
         .style("text-anchor", "end")
+        .merge(labels)
         .text(function(d) { return d; });
 
-    legend.style( 'visibility', variablesIdentical ? "hidden" : 'visible')
+    svg.select("#legend").style( 'visibility', variablesIdentical ? "hidden" : 'visible')
+    svg.select("#legend_title").text(colorAttr.replace("_", " ").replace("_", " "))
 
-    svg.selectAll("legend.title")
-        .data([0]) //empty data to draw title only once
-        .enter()
-        .append("text")
-        .attr("class", "title")
-        .text(colorAttr.replace("_", " ").replace("_", " "))
-        .attr("x", width + 20)
-        .attr("y", 0)
-        .style("text-anchor", "end")
-        .style( 'visibility', variablesIdentical ? "hidden" : 'visible')
 };
