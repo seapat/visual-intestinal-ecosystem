@@ -14,29 +14,38 @@ Beamer Theme  : singapore
 [TOC]
 
 # Introduction
+
 Mario ~2min
+
 * Aufbau der Webseite
 * Daten im Paper
 
 # Metadata
+
 Sean
+
 * Rollup
 * Warum Bar Chart?
 
 # Heatmap
+
 Florian
+
 * Berechnung
 * Skalierbare SVGs
 * Warum Heatmap, warum Circle? (ursprüngliche Idee: Bäume)
 * Idee: Rad drehen, ist aber schwierig mit der Orientierung
 
 # Histograms
+
 Antonia
+
 * Gausskernel
 * Demo
 * Verbindung Heatmap/Histogramme
 
 # Using custom data
+
 Mario ~2min
 
 # Madoko Presentation
