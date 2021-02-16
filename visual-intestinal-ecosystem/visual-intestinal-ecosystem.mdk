@@ -22,26 +22,40 @@ Mario ~2min
 
 # Metadata
 
-Sean
-
-- Custom Sort order:  Age, Diversity Obesity
-[//]: # (Age & Diversity are grouped, Obesity -> categorical: implicit order)
-
-- Counting occurences per bar:
-```javascript
-  d3.rollup(dataset
-            value => value.length,
-            key => key[xAttr])
-```
+[//]: # (Sean)
 
 - Purpose
-  - Give an Overview of Data
-  - Visualize Distributions of data
-  - easy and quick to analyse
+  - Give an Overview
+  - Easy and quick to analyze 
+  - Visualize distributions of data
+  [//]: # (no Practice required for reading)
+
+- How
+  - Custom Sort order:  Age, Diversity, Obesity
+[//]: # (Age & Diversity are grouped, Obesity -> categorical: implicit order)
+[//]: # (keyOrder = 1D array)
+  - Occurrences per bar:
+  
+  ```javascript
+  d3.groups(dataset
+    .filter(x => x[colorAttr] != null), f => f[colorAttr])
+    .map(g => g[0])
+    .sort((a, b) =>  KeyOrder.indexOf(a) > -1 ? KeyOrder.indexOf(a)-KeyOrder.indexOf(b) : d3.ascending(a, b)) 
+  ```
+
+
 
 # Stacked Bar Chart
 
-[](StackedBarchart.png)
+![StackedBarchart] 
+
+[StackedBarchart]: images/StackedBarchart.png "StackedBarchart" { width:auto; max-width:90% }
+
+# Stacked Bar Chart
+
+![StackedBarchart] 
+
+[StackedBarchart]: images/StackedBarchart.png "StackedBarchart" { width:auto; max-width:90% }
 
 # Heatmap
 
