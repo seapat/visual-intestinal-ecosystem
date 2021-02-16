@@ -25,7 +25,7 @@ Mario ~2min
 [//]: # (Sean)
 
 - Purpose
-  - Give an Overview
+  - Give an Overview of Metadata
   - Easy and quick to analyze 
   - Visualize distributions of data
   [//]: # (no Practice required for reading)
@@ -43,8 +43,6 @@ Mario ~2min
     .sort((a, b) =>  KeyOrder.indexOf(a) > -1 ? KeyOrder.indexOf(a)-KeyOrder.indexOf(b) : d3.ascending(a, b)) 
   ```
 
-
-
 # Stacked Bar Chart
 
 ![StackedBarchart] 
@@ -53,9 +51,9 @@ Mario ~2min
 
 # Stacked Bar Chart
 
-![StackedBarchart2] 
+![StackedBarchart2]
 
-[StackedBarchart2]: images/StackedBarchart2.png "StackedBarchart" { width:auto; max-width:90% }
+[StackedBarchart2]: images/StackedBarchart2.png "StackedBarchart2" { width:auto; max-width:90% }
 
 # Heatmap
 
