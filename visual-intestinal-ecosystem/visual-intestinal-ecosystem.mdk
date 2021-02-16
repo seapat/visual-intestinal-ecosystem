@@ -24,8 +24,24 @@ Mario ~2min
 
 Sean
 
-* Rollup
-* Warum Bar Chart?
+- Custom Sort order:  Age, Diversity Obesity
+[//]: # (Age & Diversity are grouped, Obesity -> categorical: implicit order)
+
+- Counting occurences per bar:
+```javascript
+  d3.rollup(dataset
+            value => value.length,
+            key => key[xAttr])
+```
+
+- Purpose
+  - Give an Overview of Data
+  - Visualize Distributions of data
+  - easy and quick to analyse
+
+# Stacked Bar Chart
+
+[](StackedBarchart.png)
 
 # Heatmap
 
