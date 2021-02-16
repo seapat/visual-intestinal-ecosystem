@@ -51,6 +51,8 @@ Mario ~2min
 
 # Stacked Bar Chart
 
+remove unnecessary legend 
+
 ![StackedBarchart2]
 
 [StackedBarchart2]: images/StackedBarchart2.png "StackedBarchart2" { width:auto; max-width:90% }
