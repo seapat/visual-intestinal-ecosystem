@@ -20,7 +20,7 @@ Mario ~2min
 * Aufbau der Webseite
 * Daten im Paper
 
-# Metadata
+# Stacked Bar Chart
 
 [//]: # (Sean)
 
@@ -53,9 +53,9 @@ Mario ~2min
 
 # Stacked Bar Chart
 
-![StackedBarchart] 
+![StackedBarchart2] 
 
-[StackedBarchart]: images/StackedBarchart.png "StackedBarchart" { width:auto; max-width:90% }
+[StackedBarchart2]: images/StackedBarchart2.png "StackedBarchart" { width:auto; max-width:90% }
 
 # Heatmap
 
