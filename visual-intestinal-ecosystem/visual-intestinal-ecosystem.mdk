@@ -36,10 +36,29 @@ Florian
 * Warum Heatmap, warum Circle? (ursprüngliche Idee: Bäume)
 * Idee: Rad drehen, ist aber schwierig mit der Orientierung
 
+# Distribution of original data
+* Processed data in order to highlight differences
+* How can we show the original data?
+
+# Kernel Density Estimation
+~ Begin Framed { padding:1ex; margin-top:1ex }
+~ Math  {#density}
+\hat{f}(x) = \frac{1}{n}\sum_{i=1}^{n}K(x, x_i)
+~
+~ End Framed
+<br>
+RBF-Kernel:
+~ Begin Framed { padding:1ex; margin-top:1ex }
+~ Math  {#gaussian-kernel}
+K(x, x') = e^{-\frac{(x-x')^2}{2\sigma^2}} 
+~
+~ Math
+\sigma = 0.05
+~
+~ End Framed
+
 # Histograms
-
-Antonia
-
+* Antonia
 * Gausskernel
 * Demo
 * Verbindung Heatmap/Histogramme
