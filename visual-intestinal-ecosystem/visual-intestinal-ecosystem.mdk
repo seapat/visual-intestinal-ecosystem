@@ -15,10 +15,29 @@ Beamer Theme  : singapore
 
 # Introduction
 
-Mario ~2min
+[//]: # (Mario)
 
-* Aufbau der Webseite
-* Daten im Paper
+* Given: 2 datasets
+  * Metadata: Contains sample's metadata information
+  * Ecosystem: For each sample the microbial composition
+* Goal: Find a connection between metadata and ecosystem
+
+# Metadata
+
+* Consists of several attributes:
+  * Age group, BMI group, diversity group, Nationality and DNA Extraction method
+* Can be visualized using different methods
+  * Stacked Bar Chart
+
+# Ecosystem
+
+* For each sample:
+  * Provide the relative abundance of each bacterium
+* Visualized, using a combination of:
+  * Wheel
+  * Heatmap
+* Connection to Metadata:
+  * Density Map for each bacterium
 
 # Stacked Bar Chart
 
@@ -95,7 +114,16 @@ K(x, x') = e^{-\frac{(x-x')^2}{2\sigma^2}}
 
 # Using custom data
 
-Mario ~2min
+* Upload Button:
+  * Gives user the chance to upload own data
+  * 2 files necessary:
+    * Metadata file
+    * Ecosystem file
+  * Same format required
+    * Format checking included
+  * Dynamic
+    * Press *Upload* Button to show
+    * Press *Cancel* to collapse
 
 # Madoko Presentation
 
