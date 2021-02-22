@@ -181,7 +181,6 @@ Florian
 ~~
 
 
-
 # Distribution of original data
 ### Antonia
 * Processed data in order to highlight differences
@@ -194,7 +193,7 @@ Florian
 \hat{f}(x) = \frac{1}{n}\sum_{i=1}^{n}K(x, x_i)
 ~
 ~ End Framed
-<br>
+<br/>
 RBF-Kernel:
 ~ Begin Framed { padding:1ex; margin-top:1ex }
 ~ Math  {#gaussian-kernel}
@@ -218,3 +217,5 @@ K(x, x') = e^{-\frac{(x-x')^2}{2\sigma^2}}
   * Dynamic
     * Press *Upload* Button to show
     * Press *Cancel* to collapse
+
+
