@@ -1,6 +1,6 @@
 [INCLUDE=presentation]
 Title         : Visualization of microbial ecosystems
-Sub Title     : At the example of human intestinal data
+Sub Title     : At the example of human <br> intestinal data
 Author        : Mario Rauh, Antonia Schuster, Sean Klein, Florian Kellner
 Affiliation   : BioVis 2020/21
 Email         : 
@@ -67,7 +67,7 @@ Beamer Theme  : singapore
       KeyOrder.indexOf(a)-KeyOrder.indexOf(b) : d3.ascending(a, b)) 
   ```
 
-# Stacked Bar Chart
+<!-- # Stacked Bar Chart
 ### Sean
 
 ![StackedBarchart] 
@@ -81,7 +81,7 @@ Beamer Theme  : singapore
 
 ![StackedBarchart2]
 
-[StackedBarchart2]: images/StackedBarchart2.png "StackedBarchart2" { width:auto; max-width:90% }
+[StackedBarchart2]: images/StackedBarchart2.png "StackedBarchart2" { width:auto; max-width:90% } -->
 
 # Heatmap
 ### Florian
@@ -217,5 +217,5 @@ K(x, x') = e^{-\frac{(x-x')^2}{2\sigma^2}}
   * Dynamic
     * Press *Upload* Button to show
     * Press *Cancel* to collapse
-
+    * Press *Cancel* to collapse
 
