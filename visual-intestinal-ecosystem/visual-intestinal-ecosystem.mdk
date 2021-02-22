@@ -78,12 +78,97 @@ hide unnecessary legend & colors
 
 # Heatmap
 
+- Purpose: 
+  - Overview over all Species
+  - Show interesting Species-Metadata-Groupings
+
+# Heatmap 
+
+![heat_wheel]
+
+[heat_wheel]: images/heat_wheel.gif "heat_wheel" { width:auto; max-width:50% }
+
+# Heatmap - CSS Tricks
+
+![heat_wheel_species_bold]
+
+[heat_wheel_species_bold]: images/heat_wheel_species_bold.gif "heat_wheel_species_bold" { width:auto; max-width:90% }
+```html
+  <g class="species_group" ...>
+    <text class="species_label" ...>...</text>
+    <path class="heatmap_tile" .../>
+    <path class="heatmap_tile" .../>
+    ...
+  </g>
+```
+
+
+```
+.species_label:hover ~ .heatmap_tile {
+  stroke: black;
+}
+.species_group:hover > .species_label {
+  font-weight: bold;
+}
+```
+
+# Heatmap - Reload animation
+
+~ Begin Columns
+~ Column { width:60% }
+```javascript
+  // paint graph
+  bacteria_angles.map((d, idx) => {
+    // ...
+    // paint heatmap tiles for species
+    group.categories.map(cat => {
+      window.setTimeout(
+        () => {
+          // paint sector
+        },
+        idx * 5
+      );
+    });
+    
+  });
+```
+~
+~ Column
+![heat_wheel_reload]
+~
+~ End Columns
+
+
+[heat_wheel_reload]: images/heat_wheel_reload.gif "heat_wheel_reload" { width:auto; max-width:100%; vertical-align:middle }
+
+# Scalable SVGs
+
+```javascript
+// o ---> y
+// |
+// |
+// v x
+
+// prepare svg element
+const svg = d3.select('#heat_wheel')
+  .attr('style', `width: 100%; max-width: ${HEATMAP_WIDTH}px;`)
+  // .attr('height', HEATMAP_HEIGHT) <-- height is not needed!
+  .attr('viewBox', `0 0 ${HEATMAP_WIDTH} ${HEATMAP_HEIGHT}`)
+  //        min Y --^ ^-- min X  ^-- max Y        ^-- max X
+```
+
+
+
+~~ Notes
 Florian
 
 * Berechnung
 * Skalierbare SVGs
 * Warum Heatmap, warum Circle? (ursprüngliche Idee: Bäume)
 * Idee: Rad drehen, ist aber schwierig mit der Orientierung
+~~
+
+
 
 # Distribution of original data
 * Processed data in order to highlight differences
