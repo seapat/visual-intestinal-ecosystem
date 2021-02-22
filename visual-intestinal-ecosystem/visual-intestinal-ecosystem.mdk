@@ -59,7 +59,8 @@ Beamer Theme  : singapore
   d3.groups(dataset
     .filter(x => x[colorAttr] != null), f => f[colorAttr])
     .map(g => g[0])
-    .sort((a, b) =>  KeyOrder.indexOf(a) > -1 ? KeyOrder.indexOf(a)-KeyOrder.indexOf(b) : d3.ascending(a, b)) 
+    .sort((a, b) =>  KeyOrder.indexOf(a) > -1 ? 
+      KeyOrder.indexOf(a)-KeyOrder.indexOf(b) : d3.ascending(a, b)) 
   ```
 
 # Stacked Bar Chart
