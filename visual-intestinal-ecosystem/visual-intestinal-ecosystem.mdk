@@ -14,6 +14,7 @@ Beamer Theme  : singapore
 [TOC]
 
 # Introduction
+### Mario
 
 [//]: # (Mario)
 
@@ -23,6 +24,7 @@ Beamer Theme  : singapore
 * Goal: Find a connection between metadata and ecosystem
 
 # Metadata
+### Mario
 
 * Consists of several attributes:
   * Age group, BMI group, diversity group, Nationality and DNA Extraction method
@@ -30,6 +32,7 @@ Beamer Theme  : singapore
   * Stacked Bar Chart
 
 # Ecosystem
+### Mario
 
 * For each sample:
   * Provide the relative abundance of each bacterium
@@ -40,6 +43,7 @@ Beamer Theme  : singapore
   * Density Map for each bacterium
 
 # Stacked Bar Chart
+### Sean
 
 [//]: # (Sean)
 
@@ -64,36 +68,41 @@ Beamer Theme  : singapore
   ```
 
 # Stacked Bar Chart
+### Sean
 
 ![StackedBarchart] 
 
 [StackedBarchart]: images/StackedBarchart.png "StackedBarchart" { width:auto; max-width:90% }
 
 # Stacked Bar Chart
+### Sean
 
-hide unnecessary legend & colors
+* hide unnecessary legend & colors
 
 ![StackedBarchart2]
 
 [StackedBarchart2]: images/StackedBarchart2.png "StackedBarchart2" { width:auto; max-width:90% }
 
 # Heatmap
+### Florian
 
 - Purpose: 
   - Overview over all Species
   - Show interesting Species-Metadata-Groupings
 
-# Heatmap 
+<!-- # Heatmap 
+### Florian
 
 ![heat_wheel]
 
-[heat_wheel]: images/heat_wheel.gif "heat_wheel" { width:auto; max-width:50% }
+[heat_wheel]: images/heat_wheel.gif "heat_wheel" { width:auto; max-width:50% } -->
 
 # Heatmap - CSS Tricks
+### Florian
 
 ![heat_wheel_species_bold]
 
-[heat_wheel_species_bold]: images/heat_wheel_species_bold.gif "heat_wheel_species_bold" { width:auto; max-width:90% }
+[heat_wheel_species_bold]: images/heat_wheel_species_bold.gif "heat_wheel_species_bold" { width:auto; max-width:90% } 
 ```html
   <g class="species_group" ...>
     <text class="species_label" ...>...</text>
@@ -114,9 +123,10 @@ hide unnecessary legend & colors
 ```
 
 # Heatmap - Reload animation
+### Florian
 
-~ Begin Columns
-~ Column { width:60% }
+<!-- ~ Begin Columns
+~ Column { width:60% } -->
 ```javascript
   // paint graph
   bacteria_angles.map((d, idx) => {
@@ -133,16 +143,17 @@ hide unnecessary legend & colors
     
   });
 ```
-~
+<!--  ~
 ~ Column
 ![heat_wheel_reload]
 ~
-~ End Columns
+~ End Columns -->
 
 
 [heat_wheel_reload]: images/heat_wheel_reload.gif "heat_wheel_reload" { width:auto; max-width:100%; vertical-align:middle }
 
 # Scalable SVGs
+### Florian
 
 ```javascript
 // o ---> y
@@ -172,10 +183,12 @@ Florian
 
 
 # Distribution of original data
+### Antonia
 * Processed data in order to highlight differences
 * How can we show the original data?
 
 # Kernel Density Estimation
+### Antonia
 ~ Begin Framed { padding:1ex; margin-top:1ex }
 ~ Math  {#density}
 \hat{f}(x) = \frac{1}{n}\sum_{i=1}^{n}K(x, x_i)
@@ -192,13 +205,8 @@ K(x, x') = e^{-\frac{(x-x')^2}{2\sigma^2}}
 ~
 ~ End Framed
 
-# Histograms
-* Antonia
-* Gausskernel
-* Demo
-* Verbindung Heatmap/Histogramme
-
 # Using custom data
+### Mario
 
 * Upload Button:
   * Gives user the chance to upload own data
